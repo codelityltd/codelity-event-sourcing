@@ -1,0 +1,16 @@
+allprojects {
+    group = "uk.co.codelity.event.sourcing"
+}
+
+subprojects {
+    // Apply the java-library plugin for API and implementation separation.
+    apply plugin: 'java-library'
+
+
+    repositories {
+        // Use Maven Central for resolving dependencies.
+        mavenCentral()
+    }
+}
+
+
