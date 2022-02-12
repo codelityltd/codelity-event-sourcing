@@ -6,11 +6,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * The annotation interface for events. Every event must
- * have a unique name across the system.
+ * The annotation, which tells the packages to be scanned for @AggregateEventHandler annotated classes.
+ * This annotation must be present in the same class with @EventSourcingEnabled annotation.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface Event {
-    String name();
+public @interface AggregateEventHandlerScan {
+    String[] basePackages() default {};
 }

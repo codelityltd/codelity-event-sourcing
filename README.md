@@ -18,7 +18,7 @@ The EventStore will be responsible for publishing and consuming events in sequen
 
 Separate modules will be developed to work with different frameworks such as **SpringBoot**, **Micronaut**, **Quarkus** etc. The MVP will only contain SpringBoot auto-configuration.
 
-@EventSourcingEnabled, @Event, @AggregateHandler and @EventHandler annotations will be used to make the configuration easier.
+@EventSourcingEnabled, @Event, @AggregateEventHandler and @EventHandler annotations will be used to make the configuration easier.
 
 An example SpringBootApplication configuration:   
 
@@ -46,7 +46,7 @@ Aggregate example:
 
 public class Order {
 
-    @AggregateHandler
+    @AggregateEventHandler
     public void handleOrderCreated(OrderCreatedEvent event) {
     }
     
