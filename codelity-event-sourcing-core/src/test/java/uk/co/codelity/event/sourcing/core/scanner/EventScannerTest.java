@@ -43,7 +43,7 @@ class EventScannerTest {
     @Test
     void shouldReturnEventClasses() throws Exception {
         EventScanner eventScanner = new EventScanner();
-        Collection<Class<?>> eventClasses = eventScanner.scanForEvents(List.of(getClass().getPackage().getName()));
+        Collection<Class<?>> eventClasses = eventScanner.scanForEvents(new String[] { getClass().getPackage().getName() });
         assertThat(eventClasses, containsInAnyOrder(event1, event2));
     }
 

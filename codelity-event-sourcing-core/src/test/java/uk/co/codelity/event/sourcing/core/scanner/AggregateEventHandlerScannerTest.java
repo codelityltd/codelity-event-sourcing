@@ -47,7 +47,7 @@ class AggregateEventHandlerScannerTest {
     @Test
     void shouldReturnAggregateEventHandlerMethods() throws Exception {
         AggregateEventHandlerScanner eventHandlerScanner = new AggregateEventHandlerScanner();
-        Collection<Method> methods = eventHandlerScanner.scanForAggregateEventHandlers(List.of(getClass().getPackage().getName()));
+        Collection<Method> methods = eventHandlerScanner.scanForAggregateEventHandlers(new String[] { getClass().getPackage().getName() });
         assertThat(methods, containsInAnyOrder(method1, method2));
     }
 }

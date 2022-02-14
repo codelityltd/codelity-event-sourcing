@@ -48,7 +48,7 @@ class EventHandlerScannerTest {
     @Test
     void scanForEventHandlers() throws Exception {
         EventHandlerScanner eventHandlerScanner = new EventHandlerScanner();
-        Collection<Method> methods = eventHandlerScanner.scanForEventHandlers(List.of(getClass().getPackage().getName()));
+        Collection<Method> methods = eventHandlerScanner.scanForEventHandlers(new String[] { getClass().getPackage().getName() });
         assertThat(methods, containsInAnyOrder(method1, method2));
     }
 }

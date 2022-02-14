@@ -12,7 +12,7 @@ import java.util.Set;
 
 public class AggregateEventHandlerScanner {
 
-    public Collection<Method> scanForAggregateEventHandlers(List<String> packageNamesToBeScanned) throws Exception {
+    public Collection<Method> scanForAggregateEventHandlers(String[] packageNamesToBeScanned) throws Exception {
         Set<Method> aggregateEventHandlerMethods = new HashSet<>();
         for (String packageName: packageNamesToBeScanned) {
             Set<Method> methods = ReflectionUtility.getMethodsWithAnnotation(packageName, AggregateEventHandler.class);

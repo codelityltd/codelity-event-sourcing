@@ -11,7 +11,7 @@ import java.util.Set;
 
 public class EventScanner {
 
-    public Collection<Class<?>> scanForEvents(List<String> packageNamesToBeScanned) throws Exception {
+    public Collection<Class<?>> scanForEvents(String[] packageNamesToBeScanned) throws Exception {
         Set<Class<?>> eventClasses = new HashSet<>();
 
         for (String packageName: packageNamesToBeScanned) {
