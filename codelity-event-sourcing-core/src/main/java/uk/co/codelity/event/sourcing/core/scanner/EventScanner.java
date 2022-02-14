@@ -12,10 +12,10 @@ import java.util.Set;
 public class EventScanner {
 
     public Collection<Class<?>> scanForEvents(List<String> packageNamesToBeScanned) throws Exception {
-        final Set<Class<?>> eventClasses = new HashSet<>();
+        Set<Class<?>> eventClasses = new HashSet<>();
 
         for (String packageName: packageNamesToBeScanned) {
-            final Set<Class<?>> classes = ReflectionUtility.getClassesWithAnnotation(packageName, Event.class);
+            Set<Class<?>> classes = ReflectionUtility.getClassesWithAnnotation(packageName, Event.class);
             eventClasses.addAll(classes);
         }
         return Collections.unmodifiableSet(eventClasses);
