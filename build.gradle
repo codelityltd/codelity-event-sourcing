@@ -50,3 +50,10 @@ project(":codelity-event-sourcing-spring-config") {
     }
 }
 
+project(":inventory:inventory-service") {
+    dependencies {
+        implementation project(":inventory:inventory-api")
+    }
+}
+
+
