@@ -4,12 +4,14 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.co.codelity.event.sourcing.common.annotation.Event;
+import uk.co.codelity.event.sourcing.common.annotation.AggregateEventHandler;
 import uk.co.codelity.event.sourcing.core.utils.reflection.ReflectionUtility;
 
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -21,17 +23,20 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 
 @ExtendWith(MockitoExtension.class)
-class EventScannerTest {
-    private Class<?> event1;
-    private Class<?> event2;
+class AggregateEventHandlerScannerTest {
+    @Mock
+    private Method method1;
+
+    @Mock
+    private Method method2;
 
     private MockedStatic<ReflectionUtility> reflectionUtilityMock;
 
     @BeforeEach
     void setUp() {
         reflectionUtilityMock = Mockito.mockStatic(ReflectionUtility.class);
-        reflectionUtilityMock.when(() -> ReflectionUtility.getClassesWithAnnotation(any(), eq(Event.class)))
-                .thenReturn(new HashSet<>(asList(event1, event2)));
+        reflectionUtilityMock.when(() -> ReflectionUtility.getMethodsWithAnnotation(any(), eq(AggregateEventHandler.class)))
+                .thenReturn(new HashSet<>(asList(method1, method2)));
     }
 
     @AfterEach
@@ -39,12 +44,10 @@ class EventScannerTest {
         reflectionUtilityMock.close();
     }
 
-
     @Test
-    void shouldReturnEventClasses() throws Exception {
-        EventScanner eventScanner = new EventScanner();
-        Collection<Class<?>> eventClasses = eventScanner.scanForEvents(List.of(getClass().getPackage().getName()));
-        assertThat(eventClasses, containsInAnyOrder(event1, event2));
+    void shouldReturnAggregateEventHandlerMethods() throws Exception {
+        AggregateEventHandlerScanner eventHandlerScanner = new AggregateEventHandlerScanner();
+        Collection<Method> methods = eventHandlerScanner.scanForAggregateEventHandlers(List.of(getClass().getPackage().getName()));
+        assertThat(methods, containsInAnyOrder(method1, method2));
     }
-
 }
