@@ -55,7 +55,7 @@ class FileResourceLookup implements ResourceLookup {
 
             return Class.forName(fqn);
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            logger.error(String.format("The class %s not found", className), e);
         }
         return null;
     }
