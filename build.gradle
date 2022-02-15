@@ -53,6 +53,8 @@ project(":codelity-event-sourcing-spring-config") {
 project(":inventory:inventory-service") {
     dependencies {
         implementation project(":inventory:inventory-api")
+        implementation "${group}:codelity-event-sourcing-spring-config:${version}"
+        implementation 'org.springframework.boot:spring-boot-starter-web:2.6.2'
     }
 }
 
