@@ -23,17 +23,19 @@ public class AutoConfiguration {
     Logger logger = LoggerFactory.getLogger(AutoConfiguration.class);
 
     @Bean
+    public Bootstrapper bootstrapper() {
+        return new Bootstrapper(new EventScanner(), new AggregateEventHandlerScanner(), new EventHandlerScanner());
+    }
+
+    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-    public EventSourcingContext eventHandlingContext(ApplicationContext applicationContext) throws Exception {
-        final Bootstrapper bootstrap = new Bootstrapper(new EventScanner(),
-                new AggregateEventHandlerScanner(),
-                new EventHandlerScanner());
-        return bootstrap.initContext(findApplicationClass(applicationContext));
+    public EventSourcingContext eventHandlingContext(ApplicationContext applicationContext, Bootstrapper bootstrapper) throws Exception {
+        return bootstrapper.initContext(findApplicationClass(applicationContext));
     }
 
     @PostConstruct
     public void printConfigurationMessage() {
-        logger.info("Auto-configuration for 'codelity-events-core' is complete...");
+        logger.info("Auto-configuration for 'codelity-event-sourcing-core' is complete...");
     }
 
 
