@@ -47,6 +47,9 @@ project(":codelity-event-sourcing-core") {
 project(":codelity-event-sourcing-spring-config") {
     dependencies {
         api "${group}:codelity-event-sourcing-core:${version}"
+        implementation 'org.springframework.boot:spring-boot-starter:2.6.3'
+
+        testImplementation 'org.springframework.boot:spring-boot-starter-test:2.6.2'
     }
 }
 
