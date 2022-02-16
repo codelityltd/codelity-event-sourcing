@@ -1,5 +1,6 @@
 package uk.co.codelity.event.sourcing.core.utils.reflection;
 
+import java.io.IOException;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.util.Enumeration;
@@ -16,7 +17,7 @@ class JarResourceLookup implements ResourceLookup {
     }
 
     @Override
-    public Set<Class<?>> getClasses() throws Exception {
+    public Set<Class<?>> getClasses() throws IOException, ClassNotFoundException {
         JarURLConnection urlcon = (JarURLConnection)url.openConnection();
         try (JarFile jar = urlcon.getJarFile();) {
             Enumeration<JarEntry> entries = jar.entries();
