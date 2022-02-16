@@ -10,11 +10,13 @@ import uk.co.codelity.event.sourcing.core.context.EventSourcingContext;
 import uk.co.codelity.event.sourcing.core.scanner.AggregateEventHandlerScanner;
 import uk.co.codelity.event.sourcing.core.scanner.EventHandlerScanner;
 import uk.co.codelity.event.sourcing.core.scanner.EventScanner;
+import uk.co.codelity.event.sourcing.core.utils.reflection.StringUtils;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
 
 import static java.util.Objects.nonNull;
+import static uk.co.codelity.event.sourcing.core.utils.reflection.StringUtils.merge;
 
 public class Bootstrapper {
     Logger logger = LoggerFactory.getLogger(Bootstrapper.class);
@@ -50,7 +52,8 @@ public class Bootstrapper {
 
     private Collection<Class<?>> scanForEvents(Class<?> applicationClass) throws Exception {
         String[] packages = eventPackages(applicationClass);
-        logger.info("ApplicationEventListener is starting scanning for events. Packages are being scanned {}", packages);
+        String packagesAsStr = merge(packages, ",");
+        logger.info("ApplicationEventListener is starting scanning for events. Packages are being scanned {}", packagesAsStr);
         Collection<Class<?>> eventClasses = eventScanner.scanForEvents(packages);
         logger.info("Event scan is completed.");
         return eventClasses;
@@ -58,7 +61,8 @@ public class Bootstrapper {
 
     private Collection<Method> scanForEventHandlers(Class<?> applicationClass) throws Exception {
         String[] packages = eventHandlerPackages(applicationClass);
-        logger.info("ApplicationEventListener is starting scanning for event handler methods. Packages are being scanned {}", packages);
+        String packagesAsStr = merge(packages, ",");
+        logger.info("ApplicationEventListener is starting scanning for event handler methods. Packages are being scanned {}", packagesAsStr);
         Collection<Method> eventHandlerMethods = eventHandlerScanner.scanForEventHandlers(packages);
         logger.info("EventHandler scan is completed.");
         return eventHandlerMethods;
@@ -66,7 +70,8 @@ public class Bootstrapper {
 
     private Collection<Method> scanForAggregateEventHandlers(Class<?> applicationClass) throws Exception {
         String[] packages = aggregateEventHandlerPackages(applicationClass);
-        logger.info("ApplicationEventListener is starting scanning for aggregate event handlers. Packages are being scanned {}", packages);
+        String packagesAsStr = merge(packages, ",");
+        logger.info("ApplicationEventListener is starting scanning for aggregate event handlers. Packages are being scanned {}", packagesAsStr);
         Collection<Method> methods = aggregateEventHandlerScanner.scanForAggregateEventHandlers(packages);
         logger.info("Aggregate scan is completed.");
         return methods;
@@ -98,4 +103,5 @@ public class Bootstrapper {
 
         return new String[] { applicationClass.getPackageName() };
     }
+
 }
