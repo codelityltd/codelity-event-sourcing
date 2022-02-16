@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 
 class FileResourceLookup implements ResourceLookup {

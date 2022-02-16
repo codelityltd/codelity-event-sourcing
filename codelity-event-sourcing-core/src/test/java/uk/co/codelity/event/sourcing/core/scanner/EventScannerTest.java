@@ -12,7 +12,6 @@ import uk.co.codelity.event.sourcing.core.utils.reflection.ReflectionUtility;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -22,8 +21,8 @@ import static org.mockito.ArgumentMatchers.eq;
 
 @ExtendWith(MockitoExtension.class)
 class EventScannerTest {
-    private Class<?> event1;
-    private Class<?> event2;
+    private Class<?> event1 = Event1.class;
+    private Class<?> event2 = Event2.class;
 
     private MockedStatic<ReflectionUtility> reflectionUtilityMock;
 
@@ -45,6 +44,14 @@ class EventScannerTest {
         EventScanner eventScanner = new EventScanner();
         Collection<Class<?>> eventClasses = eventScanner.scanForEvents(new String[] { getClass().getPackage().getName() });
         assertThat(eventClasses, containsInAnyOrder(event1, event2));
+    }
+
+    static class Event1 {
+
+    }
+
+    static class Event2 {
+
     }
 
 }

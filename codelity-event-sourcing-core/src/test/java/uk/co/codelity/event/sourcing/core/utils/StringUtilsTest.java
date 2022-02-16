@@ -1,10 +1,10 @@
-package uk.co.codelity.event.sourcing.core.utils.reflection;
+package uk.co.codelity.event.sourcing.core.utils;
 
 import org.junit.jupiter.api.Test;
+import uk.co.codelity.event.sourcing.core.utils.StringUtils;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 class StringUtilsTest {
 

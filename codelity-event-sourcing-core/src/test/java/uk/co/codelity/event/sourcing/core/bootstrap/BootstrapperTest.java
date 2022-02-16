@@ -12,6 +12,9 @@ import uk.co.codelity.event.sourcing.common.annotation.Event;
 import uk.co.codelity.event.sourcing.common.annotation.EventHandlerScan;
 import uk.co.codelity.event.sourcing.common.annotation.EventScan;
 import uk.co.codelity.event.sourcing.common.annotation.EventSourcingEnabled;
+import uk.co.codelity.event.sourcing.core.bootstrap.testapps.ns1.App;
+import uk.co.codelity.event.sourcing.core.bootstrap.testapps.ns2.AppEventSourcingEnabled;
+import uk.co.codelity.event.sourcing.core.bootstrap.testapps.ns3.AppEventSourcingEnabledWithCustomPackages;
 import uk.co.codelity.event.sourcing.core.context.EventSourcingContext;
 import uk.co.codelity.event.sourcing.core.scanner.AggregateEventHandlerScanner;
 import uk.co.codelity.event.sourcing.core.scanner.EventHandlerScanner;
@@ -68,7 +71,7 @@ class BootstrapperTest {
 
     @Test
     void shouldNotScanWhenEventSourcingNotEnabled() throws Exception {
-        EventSourcingContext eventSourcingContext = bootstrapper.initContext(App.class);
+        EventSourcingContext eventSourcingContext = bootstrapper.initContext(App.class.getPackageName());
 
         assertThat(eventSourcingContext.getEventClasses(), is(notNullValue()));
         assertThat(eventSourcingContext.getEventHandlerMethods(), is(notNullValue()));
@@ -81,7 +84,7 @@ class BootstrapperTest {
 
     @Test
     void shouldScanAppPackageWhenEventSourcingEnabled() throws Exception {
-        String appPackage = getClass().getPackageName();
+        String appPackage = AppEventSourcingEnabled.class.getPackageName();
 
         when(eventScanner.scanForEvents(any()))
                 .thenReturn(List.of(event1, event2));
@@ -92,7 +95,7 @@ class BootstrapperTest {
         when(aggregateEventHandlerScanner.scanForAggregateEventHandlers(any()))
                 .thenReturn(List.of(aggregateEventHandler1, aggregateEventHandler2));
 
-        EventSourcingContext eventSourcingContext = bootstrapper.initContext(AppEventSourcingEnabled.class);
+        EventSourcingContext eventSourcingContext = bootstrapper.initContext(appPackage);
 
         assertThat(eventSourcingContext.getEventClasses(), is(List.of(event1, event2)));
         assertThat(eventSourcingContext.getEventHandlerMethods(), is(List.of(eventHandler1, eventHandler2)));
@@ -111,7 +114,7 @@ class BootstrapperTest {
 
     @Test
     void shouldScanCustomPackagesWhenEventSourcingEnabled() throws Exception {
-        bootstrapper.initContext(AppEventSourcingEnabledWithCustomPackages.class);
+        bootstrapper.initContext(AppEventSourcingEnabledWithCustomPackages.class.getPackageName());
 
         verify(eventScanner, times(1)).scanForEvents(packagesCaptor.capture());
         assertThat(packagesCaptor.getValue(), is(new String[]{ CUSTOM_EVENTS_PKG }));
@@ -122,24 +125,6 @@ class BootstrapperTest {
         verify(aggregateEventHandlerScanner, times(1)).scanForAggregateEventHandlers(packagesCaptor.capture());
         assertThat(packagesCaptor.getValue(), is(new String[]{ CUSTOM_AGGREGATE_EVENT_HANDLER_PKG }));
     }
-
-    static class App {
-
-    }
-
-    @EventSourcingEnabled
-    static class AppEventSourcingEnabled {
-
-    }
-
-    @EventSourcingEnabled
-    @EventScan(basePackages = CUSTOM_EVENTS_PKG)
-    @EventHandlerScan(basePackages = CUSTOM_EVENT_HANDLER_PKG)
-    @AggregateEventHandlerScan(basePackages = CUSTOM_AGGREGATE_EVENT_HANDLER_PKG)
-    static class AppEventSourcingEnabledWithCustomPackages {
-
-    }
-
 
     @Event(name="Event-1")
     static class Event1 {

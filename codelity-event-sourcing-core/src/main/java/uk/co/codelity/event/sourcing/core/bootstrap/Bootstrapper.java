@@ -10,13 +10,15 @@ import uk.co.codelity.event.sourcing.core.context.EventSourcingContext;
 import uk.co.codelity.event.sourcing.core.scanner.AggregateEventHandlerScanner;
 import uk.co.codelity.event.sourcing.core.scanner.EventHandlerScanner;
 import uk.co.codelity.event.sourcing.core.scanner.EventScanner;
-import uk.co.codelity.event.sourcing.core.utils.reflection.StringUtils;
+import uk.co.codelity.event.sourcing.core.utils.reflection.ReflectionUtility;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Optional;
+import java.util.Set;
 
 import static java.util.Objects.nonNull;
-import static uk.co.codelity.event.sourcing.core.utils.reflection.StringUtils.merge;
+import static uk.co.codelity.event.sourcing.core.utils.StringUtils.merge;
 
 public class Bootstrapper {
     Logger logger = LoggerFactory.getLogger(Bootstrapper.class);
@@ -31,17 +33,16 @@ public class Bootstrapper {
         this.eventHandlerScanner = eventHandlerScanner;
     }
 
-    public EventSourcingContext initContext(Class<?> applicationClass) throws Exception {
-        boolean eventSourcingEnabled = nonNull(applicationClass.getDeclaredAnnotation(EventSourcingEnabled.class));
+    public EventSourcingContext initContext(String applicationPackageName) throws Exception {
 
-        if (!eventSourcingEnabled) {
+        if (!isEventSourcingEnabled(applicationPackageName)) {
             return EventSourcingContext.builder()
                     .build();
         }
 
-        Collection<Class<?>> eventClasses = scanForEvents(applicationClass);
-        Collection<Method> eventHandlerMethods = scanForEventHandlers(applicationClass);
-        Collection<Method> aggregateEventHandlerMethods = scanForAggregateEventHandlers(applicationClass);
+        Collection<Class<?>> eventClasses = scanForEvents(applicationPackageName);
+        Collection<Method> eventHandlerMethods = scanForEventHandlers(applicationPackageName);
+        Collection<Method> aggregateEventHandlerMethods = scanForAggregateEventHandlers(applicationPackageName);
 
         return EventSourcingContext.builder()
                 .withEvents(eventClasses)
@@ -50,58 +51,72 @@ public class Bootstrapper {
                 .build();
     }
 
-    private Collection<Class<?>> scanForEvents(Class<?> applicationClass) throws Exception {
-        String[] packages = eventPackages(applicationClass);
+    private boolean isEventSourcingEnabled(String applicationPackageName) throws Exception {
+        Set<Class<?>> classes = ReflectionUtility.getClassesWithAnnotation(applicationPackageName, EventSourcingEnabled.class);
+        return !classes.isEmpty();
+    }
+
+    private Collection<Class<?>> scanForEvents(String applicationPackageName) throws Exception {
+        String[] packages = eventPackages(applicationPackageName);
         String packagesAsStr = merge(packages, ",");
-        logger.info("ApplicationEventListener is starting scanning for events. Packages are being scanned {}", packagesAsStr);
+        logger.info("ApplicationEventListener is scanning for events. Packages are being scanned {}", packagesAsStr);
         Collection<Class<?>> eventClasses = eventScanner.scanForEvents(packages);
         logger.info("Event scan is completed.");
         return eventClasses;
     }
 
-    private Collection<Method> scanForEventHandlers(Class<?> applicationClass) throws Exception {
-        String[] packages = eventHandlerPackages(applicationClass);
+    private Collection<Method> scanForEventHandlers(String applicationPackageName) throws Exception {
+        String[] packages = eventHandlerPackages(applicationPackageName);
         String packagesAsStr = merge(packages, ",");
-        logger.info("ApplicationEventListener is starting scanning for event handler methods. Packages are being scanned {}", packagesAsStr);
+        logger.info("ApplicationEventListener is scanning for event handler methods. Packages are being scanned {}", packagesAsStr);
         Collection<Method> eventHandlerMethods = eventHandlerScanner.scanForEventHandlers(packages);
         logger.info("EventHandler scan is completed.");
         return eventHandlerMethods;
     }
 
-    private Collection<Method> scanForAggregateEventHandlers(Class<?> applicationClass) throws Exception {
-        String[] packages = aggregateEventHandlerPackages(applicationClass);
+    private Collection<Method> scanForAggregateEventHandlers(String applicationPackageName) throws Exception {
+        String[] packages = aggregateEventHandlerPackages(applicationPackageName);
         String packagesAsStr = merge(packages, ",");
-        logger.info("ApplicationEventListener is starting scanning for aggregate event handlers. Packages are being scanned {}", packagesAsStr);
+        logger.info("ApplicationEventListener is scanning for aggregate event handlers. Packages are being scanned {}", packagesAsStr);
         Collection<Method> methods = aggregateEventHandlerScanner.scanForAggregateEventHandlers(packages);
         logger.info("Aggregate scan is completed.");
         return methods;
     }
 
-    private String[] eventPackages(Class<?> applicationClass) {
-        EventScan eventScan = applicationClass.getDeclaredAnnotation(EventScan.class);
-        if (nonNull(eventScan)) {
-            return eventScan.basePackages();
+    private String[] eventPackages(String applicationPackageName) throws Exception {
+        Optional<Class<?>> clazz = ReflectionUtility.getAnyClassWithAnnotation(applicationPackageName, EventScan.class);
+        if (clazz.isPresent()) {
+            EventScan eventScan = clazz.get().getAnnotation(EventScan.class);
+            if (nonNull(eventScan)) {
+                return eventScan.basePackages();
+            }
         }
 
-        return new String[] { applicationClass.getPackageName() };
+        return new String[] { applicationPackageName };
     }
 
-    private String[] eventHandlerPackages(Class<?> applicationClass) {
-        EventHandlerScan eventHandlerScan = applicationClass.getDeclaredAnnotation(EventHandlerScan.class);
-        if (nonNull(eventHandlerScan)) {
-            return eventHandlerScan.basePackages();
+    private String[] eventHandlerPackages(String applicationPackageName) throws Exception {
+        Optional<Class<?>> clazz = ReflectionUtility.getAnyClassWithAnnotation(applicationPackageName, EventHandlerScan.class);
+        if (clazz.isPresent()) {
+            EventHandlerScan eventScan = clazz.get().getAnnotation(EventHandlerScan.class);
+            if (nonNull(eventScan)) {
+                return eventScan.basePackages();
+            }
         }
 
-        return new String[] { applicationClass.getPackageName() };
+        return new String[] { applicationPackageName };
     }
 
-    private String[] aggregateEventHandlerPackages(Class<?> applicationClass) {
-        AggregateEventHandlerScan aggregateEventHandlerScan = applicationClass.getDeclaredAnnotation(AggregateEventHandlerScan.class);
-        if (nonNull(aggregateEventHandlerScan)) {
-            return aggregateEventHandlerScan.basePackages();
+    private String[] aggregateEventHandlerPackages(String applicationPackageName) throws Exception {
+        Optional<Class<?>> clazz = ReflectionUtility.getAnyClassWithAnnotation(applicationPackageName, AggregateEventHandlerScan.class);
+        if (clazz.isPresent()) {
+            AggregateEventHandlerScan eventScan = clazz.get().getAnnotation(AggregateEventHandlerScan.class);
+            if (nonNull(eventScan)) {
+                return eventScan.basePackages();
+            }
         }
 
-        return new String[] { applicationClass.getPackageName() };
+        return new String[] { applicationPackageName };
     }
 
 }

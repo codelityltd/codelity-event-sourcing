@@ -10,6 +10,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -34,6 +35,13 @@ public class ReflectionUtility {
         return classes.stream().filter(c -> nonNull(c.getAnnotation(annotation)))
                 .collect(Collectors.toSet());
     }
+
+    public static Optional<Class<?>> getAnyClassWithAnnotation(String packageName, Class<? extends Annotation> annotation) throws Exception {
+        Set<Class<?>> classes = getClasses(packageName);
+        return classes.stream().filter(c -> nonNull(c.getAnnotation(annotation)))
+                .findAny();
+    }
+
     public static Set<Class<?>> getClasses(String packageName) throws Exception {
         Enumeration<URL> urls = getResources(packageName);
         Set<Class<?>> result = new HashSet<>();
