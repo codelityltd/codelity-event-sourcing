@@ -1,11 +1,13 @@
-package uk.co.codelity.inventory.service.aggregate;
+package uk.co.codelity.inventory.aggregate;
 
 import uk.co.codelity.event.sourcing.common.annotation.AggregateEventHandler;
-import uk.co.codelity.inventory.service.events.StockDecreased;
-import uk.co.codelity.inventory.service.events.StockIncreased;
-import uk.co.codelity.inventory.service.events.StockReserved;
+import uk.co.codelity.inventory.events.StockDecreased;
+import uk.co.codelity.inventory.events.StockIncreased;
+import uk.co.codelity.inventory.events.StockReserved;
 
-public class InventoryItem {
+import java.util.List;
+
+public class ProductStock {
     @AggregateEventHandler
     public void apply(StockIncreased stockIncreased) {
 
@@ -19,5 +21,9 @@ public class InventoryItem {
     @AggregateEventHandler
     public void apply(StockReserved stockReserved) {
 
+    }
+
+    public List<Object> supply(int quantity) {
+        return null;
     }
 }
