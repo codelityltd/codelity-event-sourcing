@@ -30,7 +30,7 @@ public class AutoConfiguration {
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
     public EventSourcingContext eventHandlingContext(ApplicationContext applicationContext, Bootstrapper bootstrapper) throws Exception {
-        return bootstrapper.initContext(findApplicationClass(applicationContext));
+        return bootstrapper.initContext(findApplicationPackageName(applicationContext));
     }
 
     @PostConstruct
@@ -39,13 +39,15 @@ public class AutoConfiguration {
     }
 
 
-    private Class<?> findApplicationClass(ApplicationContext applicationContext){
+    private String findApplicationPackageName(ApplicationContext applicationContext){
+      
         Map<String, Object> beans = applicationContext.getBeansWithAnnotation(SpringBootApplication.class);
         if(beans.isEmpty()) {
             logger.warn("SpringBootApplication could not be found!");
             return null;
         }
 
-        return beans.values().iterator().next().getClass();
+        Object bean = beans.values().iterator().next();
+        return bean.getClass().getPackageName();
     }
 }

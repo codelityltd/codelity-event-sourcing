@@ -1,0 +1,8 @@
+POST http://localhost:8080/api/v1/inventory/products/72032317-6dc2-403a-b7e7-f916f02cf875/supply
+Content-Type: application/json
+
+{
+  "quantity": 2
+}
+
+###

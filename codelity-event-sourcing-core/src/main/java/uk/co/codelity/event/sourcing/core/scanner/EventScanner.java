@@ -6,7 +6,6 @@ import uk.co.codelity.event.sourcing.core.utils.reflection.ReflectionUtility;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class EventScanner {

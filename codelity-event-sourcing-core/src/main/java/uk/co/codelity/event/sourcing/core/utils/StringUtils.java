@@ -1,4 +1,4 @@
-package uk.co.codelity.event.sourcing.core.utils.reflection;
+package uk.co.codelity.event.sourcing.core.utils;
 
 import java.util.Arrays;
 
