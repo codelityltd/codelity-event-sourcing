@@ -47,17 +47,16 @@ project(":codelity-event-sourcing-core") {
 project(":codelity-event-sourcing-spring-config") {
     dependencies {
         api "${group}:codelity-event-sourcing-core:${version}"
-        implementation 'org.springframework.boot:spring-boot-starter:2.6.3'
-
-        testImplementation 'org.springframework.boot:spring-boot-starter-test:2.6.2'
+        implementation "org.springframework.boot:spring-boot-starter:${springboot_version}"
+        testImplementation "org.springframework.boot:spring-boot-starter-test:${springboot_version}"
     }
 }
 
 project(":inventory:inventory-api") {
     dependencies {
-        implementation 'org.springframework.boot:spring-boot-starter-web:2.6.2'
-        implementation 'org.springdoc:springdoc-openapi-ui:1.6.5'
-        implementation 'org.springdoc:springdoc-openapi-data-rest:1.6.5'
+        implementation "org.springframework.boot:spring-boot-starter-web:${springboot_version}"
+        implementation "org.springdoc:springdoc-openapi-ui:1.6.5"
+        implementation "org.springdoc:springdoc-openapi-data-rest:1.6.5"
     }
 }
 
@@ -65,7 +64,10 @@ project(":inventory:inventory-service") {
     dependencies {
         implementation project(":inventory:inventory-api")
         implementation "${group}:codelity-event-sourcing-spring-config:${version}"
-        implementation 'org.springframework.boot:spring-boot-starter-web:2.6.2'
+        implementation "org.springframework.boot:spring-boot-starter-web:${springboot_version}"
+        implementation "org.springframework.boot:spring-boot-starter-validation:${springboot_version}"
+        testImplementation "org.springframework.boot:spring-boot-starter-test:${springboot_version}"
+
     }
 }
 

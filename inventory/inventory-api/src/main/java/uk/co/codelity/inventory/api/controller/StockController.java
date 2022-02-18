@@ -17,6 +17,7 @@ import uk.co.codelity.inventory.api.contracts.DispatchRequest;
 import uk.co.codelity.inventory.api.contracts.ReservationRequest;
 import uk.co.codelity.inventory.api.contracts.SupplyRequest;
 
+import javax.validation.Valid;
 import java.util.UUID;
 
 
@@ -32,7 +33,7 @@ public interface StockController {
                 schema = @Schema(implementation = SupplyRequest.class)) })
     })
     @PostMapping("/products/{productId}/supply")
-    ResponseEntity<Void> supply(@PathVariable("productId") UUID productId, @RequestBody SupplyRequest request);
+    ResponseEntity<Void> supply(@PathVariable("productId") UUID productId, @Valid @RequestBody SupplyRequest request);
 
 
     @Operation(summary = "Dispatch request for a product")
