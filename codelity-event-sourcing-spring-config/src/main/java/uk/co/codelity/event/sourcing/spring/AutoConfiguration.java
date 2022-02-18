@@ -40,6 +40,7 @@ public class AutoConfiguration {
 
 
     private String findApplicationPackageName(ApplicationContext applicationContext){
+      
         Map<String, Object> beans = applicationContext.getBeansWithAnnotation(SpringBootApplication.class);
         if(beans.isEmpty()) {
             logger.warn("SpringBootApplication could not be found!");
@@ -47,7 +48,6 @@ public class AutoConfiguration {
         }
 
         Object bean = beans.values().iterator().next();
-
         return bean.getClass().getPackageName();
     }
 }

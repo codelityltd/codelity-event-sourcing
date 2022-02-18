@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Objects.nonNull;
+
 import static uk.co.codelity.event.sourcing.core.utils.StringUtils.merge;
 
 public class Bootstrapper {

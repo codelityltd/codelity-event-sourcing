@@ -1,5 +1,5 @@
 # Codelity Event Sourcing Library 
-is a lightweight container friendly library which will utilise **[event sourcing](https://microservices.io/patterns/data/event-sourcing.html)** pattern to write loosely coupled, scalable microservices in Java.
+is a lightweight container friendly library which will utilise **[event sourcing](https://microservices.io/patterns/data/event-sourcing.html)** pattern to write loosely coupled, scalable microservices in Java. 
 
 ### Design
 Initial project will have five modules. 
