@@ -19,8 +19,6 @@ import java.util.Set;
 
 import static java.util.Objects.nonNull;
 
-import static uk.co.codelity.event.sourcing.core.utils.StringUtils.merge;
-
 public class Bootstrapper {
     Logger logger = LoggerFactory.getLogger(Bootstrapper.class);
 
@@ -59,7 +57,7 @@ public class Bootstrapper {
 
     private Collection<Class<?>> scanForEvents(String applicationPackageName) throws Exception {
         String[] packages = eventPackages(applicationPackageName);
-        String packagesAsStr = merge(packages, ",");
+        String packagesAsStr = String.join(",", packages);
         logger.info("ApplicationEventListener is scanning for events. Packages are being scanned {}", packagesAsStr);
         Collection<Class<?>> eventClasses = eventScanner.scanForEvents(packages);
         logger.info("Event scan is completed.");
@@ -68,7 +66,7 @@ public class Bootstrapper {
 
     private Collection<Method> scanForEventHandlers(String applicationPackageName) throws Exception {
         String[] packages = eventHandlerPackages(applicationPackageName);
-        String packagesAsStr = merge(packages, ",");
+        String packagesAsStr = String.join(",", packages);
         logger.info("ApplicationEventListener is scanning for event handler methods. Packages are being scanned {}", packagesAsStr);
         Collection<Method> eventHandlerMethods = eventHandlerScanner.scanForEventHandlers(packages);
         logger.info("EventHandler scan is completed.");
@@ -77,7 +75,7 @@ public class Bootstrapper {
 
     private Collection<Method> scanForAggregateEventHandlers(String applicationPackageName) throws Exception {
         String[] packages = aggregateEventHandlerPackages(applicationPackageName);
-        String packagesAsStr = merge(packages, ",");
+        String packagesAsStr = String.join(",", packages);
         logger.info("ApplicationEventListener is scanning for aggregate event handlers. Packages are being scanned {}", packagesAsStr);
         Collection<Method> methods = aggregateEventHandlerScanner.scanForAggregateEventHandlers(packages);
         logger.info("Aggregate scan is completed.");
