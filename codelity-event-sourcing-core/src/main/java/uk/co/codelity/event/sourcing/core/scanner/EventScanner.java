@@ -3,6 +3,8 @@ package uk.co.codelity.event.sourcing.core.scanner;
 import uk.co.codelity.event.sourcing.common.annotation.Event;
 import uk.co.codelity.event.sourcing.core.utils.reflection.ReflectionUtility;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -12,7 +14,8 @@ import static java.util.Objects.requireNonNull;
 
 public class EventScanner {
 
-    public Collection<Class<?>> scanForEvents(String[] packageNamesToBeScanned) throws Exception {
+    public Collection<Class<?>> scanForEvents(String[] packageNamesToBeScanned)
+            throws IOException, URISyntaxException, ClassNotFoundException {
         requireNonNull(packageNamesToBeScanned);
 
         Set<Class<?>> eventClasses = new HashSet<>();
