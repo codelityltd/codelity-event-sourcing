@@ -9,32 +9,32 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
-public class JdbcQuery {
+public class JdbcQuery <T>{
 
     private String query;
     private Object[] params;
-    private Function<ResultSet, Object> mapper;
+    private Function<ResultSet, T> mapper;
 
     private JdbcQuery(String query) {
         this.query = query;
         this.params = new Object[0];
     }
 
-    public static JdbcQuery query(String query){
-        return new JdbcQuery(query);
+    public static <T> JdbcQuery<T> query(String query){
+        return new JdbcQuery<T>(query);
     }
 
-    public JdbcQuery withParams(Object... params) {
+    public JdbcQuery<T> withParams(Object... params) {
         this.params = params;
         return this;
     }
 
-    public JdbcQuery withMapper(Function<ResultSet, Object> mapper) {
+    public JdbcQuery<T> withMapper(Function<ResultSet, T> mapper) {
         this.mapper = mapper;
         return this;
     }
 
-    public <T> List<T> execute(Connection connection) throws SQLException {
+    public List<T> execute(Connection connection) throws SQLException {
         Objects.requireNonNull(connection);
         Objects.requireNonNull(query);
         Objects.requireNonNull(mapper);
@@ -45,7 +45,7 @@ public class JdbcQuery {
 
             List<T> result = new ArrayList<>();
             while (resultSet.next()) {
-                result.add((T)mapper.apply(resultSet));
+                result.add(mapper.apply(resultSet));
             }
             return result;
         }

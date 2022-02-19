@@ -37,7 +37,7 @@ public class JdbcTestHelper {
     }
 
     public static List<EventDelivery> getDeliveryListByStreamId (String streamId) throws SQLException {
-        return JdbcQuery.query("SELECT * FROM event_delivery WHERE stream_id=? order by delivery_order")
+        return JdbcQuery.<EventDelivery>query("SELECT * FROM event_delivery WHERE stream_id=? order by delivery_order")
                 .withParams(streamId)
                 .withMapper(EventDeliveryMapper::map)
                 .execute(connect());

@@ -35,7 +35,7 @@ public class EventRepository {
 
     public List<Event> findEventsByStreamIdOrderedByPosition(String streamId) throws SQLException, MapperException {
         try (Connection connection = connect()) {
-            return JdbcQuery.query(Sql.SELECT_EVENTS_BY_STREAMID)
+            return JdbcQuery.<Event>query(Sql.SELECT_EVENTS_BY_STREAMID)
                     .withParams(streamId)
                     .withMapper(EventMapper::map)
                     .execute(connection);
@@ -117,7 +117,7 @@ public class EventRepository {
     }
 
     private StreamPositionSummary getStreamPositionSummary(String streamId, Connection connection) throws SQLException, MapperException {
-        List<StreamPositionSummary> result = JdbcQuery.query(SELECT_STREAM_POSITION_SUMMARY)
+        List<StreamPositionSummary> result = JdbcQuery.<StreamPositionSummary>query(SELECT_STREAM_POSITION_SUMMARY)
                 .withParams(streamId)
                 .withMapper(StreamPositionSummaryMapper::map)
                 .execute(connection);
