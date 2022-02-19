@@ -21,7 +21,7 @@ public class JdbcQuery <T>{
     }
 
     public static <T> JdbcQuery<T> query(String query){
-        return new JdbcQuery<T>(query);
+        return new JdbcQuery<>(query);
     }
 
     public JdbcQuery<T> withParams(Object... params) {
