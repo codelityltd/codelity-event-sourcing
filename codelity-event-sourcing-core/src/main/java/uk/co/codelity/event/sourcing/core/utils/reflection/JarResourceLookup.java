@@ -9,6 +9,8 @@ import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import static java.util.Objects.requireNonNull;
+
 class JarResourceLookup implements ResourceLookup {
     private final URL url;
 
@@ -18,6 +20,8 @@ class JarResourceLookup implements ResourceLookup {
 
     @Override
     public Set<Class<?>> getClasses() throws IOException, ClassNotFoundException {
+        requireNonNull(url);
+
         JarURLConnection urlcon = (JarURLConnection)url.openConnection();
         try (JarFile jar = urlcon.getJarFile();) {
             Enumeration<JarEntry> entries = jar.entries();

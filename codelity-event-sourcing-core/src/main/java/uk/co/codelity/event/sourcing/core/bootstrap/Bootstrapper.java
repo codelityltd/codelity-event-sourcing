@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Objects.nonNull;
+import static java.util.Objects.requireNonNull;
 
 public class Bootstrapper {
     Logger logger = LoggerFactory.getLogger(Bootstrapper.class);
@@ -33,7 +34,7 @@ public class Bootstrapper {
     }
 
     public EventSourcingContext initContext(String applicationPackageName) throws Exception {
-
+        requireNonNull(applicationPackageName);
         if (!isEventSourcingEnabled(applicationPackageName)) {
             return EventSourcingContext.builder()
                     .build();

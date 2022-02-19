@@ -4,7 +4,6 @@ allprojects {
 }
 
 subprojects {
-    // Apply the java-library plugin for API and implementation separation.
     apply plugin: 'java-library'
     apply plugin: 'maven-publish'
 
@@ -22,10 +21,8 @@ subprojects {
     }
 
     tasks.named('test') {
-        // Use JUnit Platform for unit tests.
         useJUnitPlatform()
     }
-
 
     publishing {
         publications {
@@ -34,8 +31,6 @@ subprojects {
             }
         }
     }
-
-
 }
 
 project(":codelity-event-sourcing-core") {
@@ -47,6 +42,22 @@ project(":codelity-event-sourcing-core") {
 project(":codelity-event-sourcing-spring-config") {
     dependencies {
         api "${group}:codelity-event-sourcing-core:${version}"
+        implementation "org.springframework.boot:spring-boot-starter:${springboot_version}"
+        testImplementation "org.springframework.boot:spring-boot-starter-test:${springboot_version}"
+    }
+}
+
+project(":codelity-jdbc-eventstore") {
+    dependencies {
+        api "${group}:codelity-event-sourcing-common:${version}"
+        implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.4'
+        testImplementation 'com.h2database:h2:1.4.200'
+    }
+}
+
+project(":codelity-jdbc-eventstore-spring-config") {
+    dependencies {
+        api "${group}:codelity-jdbc-eventstore:${version}"
         implementation "org.springframework.boot:spring-boot-starter:${springboot_version}"
         testImplementation "org.springframework.boot:spring-boot-starter-test:${springboot_version}"
     }
