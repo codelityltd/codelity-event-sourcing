@@ -9,9 +9,13 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import static java.util.Objects.requireNonNull;
+
 public class EventHandlerScanner {
 
     public Collection<Method> scanForEventHandlers(String[] packageNamesToBeScanned) throws Exception {
+        requireNonNull(packageNamesToBeScanned);
+
         Set<Method> aggregateEventHandlerMethods = new HashSet<>();
         for (String packageName: packageNamesToBeScanned) {
             Set<Method> methods = ReflectionUtility.getMethodsWithAnnotation(packageName, EventHandler.class);

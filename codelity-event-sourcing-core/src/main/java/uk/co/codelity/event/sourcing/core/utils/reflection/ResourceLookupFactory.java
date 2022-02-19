@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 
+import static java.util.Objects.requireNonNull;
+
 class ResourceLookupFactory {
     public static final String JAR = "jar";
     public static final String FILE = "file";
@@ -15,6 +17,9 @@ class ResourceLookupFactory {
     }
 
     public static ResourceLookup create(URL url, String packageName) {
+        requireNonNull(url);
+        requireNonNull(packageName);
+
         switch (url.getProtocol()) {
             case JAR:
                 return new JarResourceLookup(url);

@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
+import static java.util.Objects.requireNonNull;
 
 public class ReflectionUtility {
     static Logger logger = LoggerFactory.getLogger(ReflectionUtility.class);
@@ -25,6 +26,9 @@ public class ReflectionUtility {
 
     public static Set<Method> getMethodsWithAnnotation(String packageName, Class<? extends Annotation> annotation)
             throws IOException, URISyntaxException, ClassNotFoundException {
+
+        requireNonNull(packageName);
+        requireNonNull(annotation);
 
         Set<Class<?>> classes = getClasses(packageName);
         return classes.stream()
@@ -36,6 +40,9 @@ public class ReflectionUtility {
     public static Set<Class<?>> getClassesWithAnnotation(String packageName, Class<? extends Annotation> annotation)
             throws IOException, URISyntaxException, ClassNotFoundException {
 
+        requireNonNull(packageName);
+        requireNonNull(annotation);
+
         Set<Class<?>> classes = getClasses(packageName);
         return classes.stream().filter(c -> nonNull(c.getAnnotation(annotation)))
                 .collect(Collectors.toSet());
@@ -44,6 +51,9 @@ public class ReflectionUtility {
     public static Optional<Class<?>> getAnyClassWithAnnotation(String packageName, Class<? extends Annotation> annotation)
             throws IOException, URISyntaxException, ClassNotFoundException {
 
+        requireNonNull(packageName);
+        requireNonNull(annotation);
+
         Set<Class<?>> classes = getClasses(packageName);
         return classes.stream().filter(c -> nonNull(c.getAnnotation(annotation)))
                 .findAny();
@@ -51,6 +61,8 @@ public class ReflectionUtility {
 
     public static Set<Class<?>> getClasses(String packageName)
             throws IOException, URISyntaxException, ClassNotFoundException {
+
+        requireNonNull(packageName);
 
         Enumeration<URL> urls = getResources(packageName);
         Set<Class<?>> result = new HashSet<>();

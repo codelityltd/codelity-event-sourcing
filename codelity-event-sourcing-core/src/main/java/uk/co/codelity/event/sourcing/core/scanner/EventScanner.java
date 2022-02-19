@@ -8,9 +8,13 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import static java.util.Objects.requireNonNull;
+
 public class EventScanner {
 
     public Collection<Class<?>> scanForEvents(String[] packageNamesToBeScanned) throws Exception {
+        requireNonNull(packageNamesToBeScanned);
+
         Set<Class<?>> eventClasses = new HashSet<>();
 
         for (String packageName: packageNamesToBeScanned) {

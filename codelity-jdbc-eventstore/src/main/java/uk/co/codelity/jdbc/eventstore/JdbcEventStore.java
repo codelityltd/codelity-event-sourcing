@@ -20,6 +20,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.requireNonNull;
+
 public class JdbcEventStore implements EventStore {
     private final EventRepository eventRepository;
     private final EventHandlerRegistry eventHandlerRegistry;
@@ -33,6 +35,9 @@ public class JdbcEventStore implements EventStore {
 
     @Override
     public void append(String streamId, List<Object> events) throws EventPersistenceException {
+        requireNonNull(streamId);
+        requireNonNull(events);
+
         List<Event> eventList = new ArrayList<>();
 
         for (final Object event : events) {
@@ -48,6 +53,8 @@ public class JdbcEventStore implements EventStore {
 
     @Override
     public Iterable<EventInfo> loadEvents(String streamId) throws EventLoadException {
+        requireNonNull(streamId);
+
         try {
             List<Event> events =  eventRepository.findEventsByStreamIdOrderedByPosition(streamId);
             return events.stream().map(this::convertToEventInfo)
