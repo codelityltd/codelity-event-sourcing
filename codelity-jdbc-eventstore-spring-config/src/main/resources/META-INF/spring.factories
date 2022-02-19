@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+uk.co.codelity.jdbc.eventstore.spring.JdbcEventStoreConfiguration

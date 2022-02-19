@@ -46,7 +46,5 @@ class AutoConfigurationTest {
     }
 
     @SpringBootApplication
-    static class App {
-
-    }
+    static class App { }
 }

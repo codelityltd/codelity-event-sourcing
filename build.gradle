@@ -59,6 +59,7 @@ project(":codelity-jdbc-eventstore-spring-config") {
     dependencies {
         api "${group}:codelity-jdbc-eventstore:${version}"
         implementation "org.springframework.boot:spring-boot-starter:${springboot_version}"
+        implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.4'
         testImplementation "org.springframework.boot:spring-boot-starter-test:${springboot_version}"
     }
 }
