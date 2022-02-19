@@ -1,6 +1,7 @@
 package uk.co.codelity.jdbc.eventstore.mappers;
 
 import uk.co.codelity.jdbc.eventstore.entity.EventDelivery;
+import uk.co.codelity.jdbc.eventstore.exception.MapperException;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,6 +11,9 @@ import java.util.UUID;
 import static uk.co.codelity.jdbc.eventstore.repository.utils.JdbcUtils.toLocalDateTime;
 
 public class EventDeliveryMapper {
+    private EventDeliveryMapper() {
+    }
+
     public static EventDelivery map(ResultSet resultSet) {
         try {
             Long id = resultSet.getLong("delivery_id");
@@ -35,7 +39,7 @@ public class EventDeliveryMapper {
             );
 
         } catch (SQLException ex) {
-            throw new RuntimeException(ex.getMessage(), ex);
+            throw new MapperException(ex.getMessage(), ex);
         }
     }
 }

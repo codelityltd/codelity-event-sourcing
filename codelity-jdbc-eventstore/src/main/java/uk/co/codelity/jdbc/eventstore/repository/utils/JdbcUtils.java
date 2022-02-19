@@ -8,7 +8,10 @@ import java.time.LocalDateTime;
 import static java.util.Objects.isNull;
 
 public class JdbcUtils {
-    static public Integer getInteger(ResultSet rs, String strColName) throws SQLException {
+
+    private JdbcUtils() {}
+
+    public static Integer getInteger(ResultSet rs, String strColName) throws SQLException {
         int nValue = rs.getInt(strColName);
         return rs.wasNull() ? null : nValue;
     }
@@ -26,4 +29,5 @@ public class JdbcUtils {
         }
         return timestamp.toLocalDateTime();
     }
+
 }

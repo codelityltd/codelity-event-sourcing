@@ -3,8 +3,6 @@ package uk.co.codelity.jdbc.eventstore.entity;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static uk.co.codelity.jdbc.eventstore.entity.DeliveryStatus.PENDING;
-
 public class EventDelivery {
     public final Long id;
     public final String streamId;

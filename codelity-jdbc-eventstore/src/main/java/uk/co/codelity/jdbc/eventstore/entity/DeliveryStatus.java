@@ -6,4 +6,7 @@ public class DeliveryStatus {
     public static final int PROCESSING = 2;
     public static final int COMPLETED = 3;
     public static final int FAILED = 5;
+
+    private DeliveryStatus() {
+    }
 }

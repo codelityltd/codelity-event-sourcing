@@ -50,6 +50,7 @@ project(":codelity-event-sourcing-spring-config") {
 project(":codelity-jdbc-eventstore") {
     dependencies {
         api "${group}:codelity-event-sourcing-common:${version}"
+        implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.4'
         testImplementation 'com.h2database:h2:1.4.200'
     }
 }

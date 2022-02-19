@@ -43,16 +43,57 @@ class EventRepositoryTest {
     @Test
     void shouldPersistsAndReadsEvents() throws Exception {
         final String streamId = UUID.randomUUID().toString();
-        whenEventsAreSaved(streamId, givenEventsWithStreamId(streamId, 1));
+        whenEventsAreSaved(streamId, givenEventsWithStreamId(streamId, 2));
 
         final List<Event> events = eventRepository.findEventsByStreamIdOrderedByPosition(streamId);
-        assertThat(events.size(), is(1));
+        assertThat(events.size(), is(2));
         assertThat(events.get(0).position, is(1));
-        List<EventDelivery> eventDeliveryList = JdbcTestHelper.getDeliveryListByStreamId(streamId);
+        assertThat(events.get(1).position, is(2));
 
-        assertThat(eventDeliveryList.size(), is(1));
+        List<EventDelivery> eventDeliveryList = JdbcTestHelper.getDeliveryListByStreamId(streamId);
+        assertThat(eventDeliveryList.size(), is(2));
         assertThat(eventDeliveryList.get(0).deliveryOrder, is(1));
         assertThat(eventDeliveryList.get(0).status, is(DeliveryStatus.READY_TO_TRANSFER));
+        assertThat(eventDeliveryList.get(1).deliveryOrder, is(2));
+        assertThat(eventDeliveryList.get(1).status, is(DeliveryStatus.PENDING));
+    }
+
+    @Test
+    void statusShouldBePendingWhenPreviousDeliveryIsNotCompleted() throws Exception {
+        final String streamId = UUID.randomUUID().toString();
+        whenEventsAreSaved(streamId, givenEventsWithStreamId(streamId, 1));
+        whenEventsAreSaved(streamId, givenEventsWithStreamId(streamId, 1));
+        final List<Event> events = eventRepository.findEventsByStreamIdOrderedByPosition(streamId);
+        assertThat(events.size(), is(2));
+        assertThat(events.get(0).position, is(1));
+        assertThat(events.get(1).position, is(2));
+
+        List<EventDelivery> eventDeliveryList = JdbcTestHelper.getDeliveryListByStreamId(streamId);
+        assertThat(eventDeliveryList.size(), is(2));
+        assertThat(eventDeliveryList.get(0).deliveryOrder, is(1));
+        assertThat(eventDeliveryList.get(0).status, is(DeliveryStatus.READY_TO_TRANSFER));
+        assertThat(eventDeliveryList.get(1).deliveryOrder, is(2));
+        assertThat(eventDeliveryList.get(1).status, is(DeliveryStatus.PENDING));
+    }
+
+    @Test
+    void statusShouldBeReadyWhenPreviousDeliveryIsCompleted() throws Exception {
+        final String streamId = UUID.randomUUID().toString();
+        whenEventsAreSaved(streamId, givenEventsWithStreamId(streamId, 1));
+        JdbcTestHelper.setAllEventsAsDelivered(streamId);
+
+        whenEventsAreSaved(streamId, givenEventsWithStreamId(streamId, 1));
+        final List<Event> events = eventRepository.findEventsByStreamIdOrderedByPosition(streamId);
+        assertThat(events.size(), is(2));
+        assertThat(events.get(0).position, is(1));
+        assertThat(events.get(1).position, is(2));
+
+        List<EventDelivery> eventDeliveryList = JdbcTestHelper.getDeliveryListByStreamId(streamId);
+        assertThat(eventDeliveryList.size(), is(2));
+        assertThat(eventDeliveryList.get(0).deliveryOrder, is(1));
+        assertThat(eventDeliveryList.get(0).status, is(DeliveryStatus.COMPLETED));
+        assertThat(eventDeliveryList.get(1).deliveryOrder, is(2));
+        assertThat(eventDeliveryList.get(1).status, is(DeliveryStatus.READY_TO_TRANSFER));
     }
 
     private void whenEventsAreSaved(final String streamId, final List<Event> eventsToBeSaved) throws SQLException {

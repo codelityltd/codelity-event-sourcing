@@ -1,12 +1,15 @@
 package uk.co.codelity.jdbc.eventstore.mappers;
 
 import uk.co.codelity.jdbc.eventstore.entity.Event;
+import uk.co.codelity.jdbc.eventstore.exception.MapperException;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 
 public class EventMapper {
+    private EventMapper() {}
+
     public static Event map(ResultSet resultSet) {
         try {
             Long id = resultSet.getLong("event_id");
@@ -24,7 +27,7 @@ public class EventMapper {
                     payload,
                     dateCreated);
         } catch (SQLException ex) {
-            throw new RuntimeException(ex.getMessage(), ex);
+            throw new MapperException(ex.getMessage(), ex);
         }
     }
 }

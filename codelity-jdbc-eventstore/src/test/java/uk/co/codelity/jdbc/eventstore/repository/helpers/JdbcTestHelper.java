@@ -1,6 +1,7 @@
 package uk.co.codelity.jdbc.eventstore.repository.helpers;
 
 import org.h2.tools.Server;
+import uk.co.codelity.jdbc.eventstore.entity.DeliveryStatus;
 import uk.co.codelity.jdbc.eventstore.entity.EventDelivery;
 import uk.co.codelity.jdbc.eventstore.mappers.EventDeliveryMapper;
 import uk.co.codelity.jdbc.eventstore.repository.utils.JdbcQuery;
@@ -42,9 +43,9 @@ public class JdbcTestHelper {
                 .execute(connect());
     }
 
-//    public static void setAllEventsAsDelivered(String streamId) throws SQLException {
-//        JdbcUpdate.update("UPDATE event_delivery SET status=? WHERE stream_id=?" )
-//                .withParams(DeliveryStatus.COMPLETED, streamId)
-//                .execute(connect());
-//    }
+    public static void setAllEventsAsDelivered(String streamId) throws SQLException {
+        JdbcUpdate.update("UPDATE event_delivery SET status=? WHERE stream_id=?" )
+                .withParams(DeliveryStatus.COMPLETED, streamId)
+                .execute(connect());
+    }
 }

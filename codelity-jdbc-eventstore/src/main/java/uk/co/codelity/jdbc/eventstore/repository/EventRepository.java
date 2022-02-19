@@ -1,11 +1,10 @@
 package uk.co.codelity.jdbc.eventstore.repository;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import uk.co.codelity.jdbc.eventstore.entity.DeliveryStatus;
 import uk.co.codelity.jdbc.eventstore.entity.Event;
 import uk.co.codelity.jdbc.eventstore.entity.EventDelivery;
 import uk.co.codelity.jdbc.eventstore.entity.StreamPositionSummary;
+import uk.co.codelity.jdbc.eventstore.exception.MapperException;
 import uk.co.codelity.jdbc.eventstore.mappers.EventMapper;
 import uk.co.codelity.jdbc.eventstore.mappers.StreamPositionSummaryMapper;
 import uk.co.codelity.jdbc.eventstore.repository.utils.JdbcInsert;
@@ -23,19 +22,18 @@ import static uk.co.codelity.jdbc.eventstore.repository.Sql.SELECT_STREAM_POSITI
 import static uk.co.codelity.jdbc.eventstore.repository.utils.JdbcUtils.toTimeStamp;
 
 public class EventRepository {
-    Logger logger = LoggerFactory.getLogger(EventRepository.class);
 
     private final String url;
     private final String user;
     private final String password;
 
-    public EventRepository(final String url, final String user, final String password) {
+    public EventRepository(String url, String user, String password) {
         this.url = url;
         this.user = user;
         this.password = password;
     }
 
-    public List<Event> findEventsByStreamIdOrderedByPosition(final String streamId) throws SQLException {
+    public List<Event> findEventsByStreamIdOrderedByPosition(String streamId) throws SQLException, MapperException {
         try (Connection connection = connect()) {
             return JdbcQuery.query(Sql.SELECT_EVENTS_BY_STREAMID)
                     .withParams(streamId)
@@ -44,7 +42,7 @@ public class EventRepository {
         }
     }
 
-    public void saveAll(final String streamId, final List<Event> events) throws SQLException {
+    public void saveAll(String streamId, List<Event> events) throws SQLException {
         if (events.isEmpty()) {
             return;
         }
@@ -54,40 +52,43 @@ public class EventRepository {
 
             try {
                 StreamPositionSummary streamPositionSummary = getStreamPositionSummary(streamId, connection);
-                int maxPositionInStream = streamPositionSummary.maxPosition;
-                int maxDeliveryOrder = streamPositionSummary.maxDeliveryOrder;
-                boolean previousDeliveriesAreCompleted = streamPositionSummary.latestEventStatus == DeliveryStatus.COMPLETED;
+                PositionInfo positionInfo = new PositionInfo(streamPositionSummary);
 
                 for (Event event : events) {
-                    long eventId = insertEventLog(event, ++maxPositionInStream, connection);
-
-                    boolean firstDelivery = true;
-                    for (String handlerCode : event.handlerCodes) {
-                        Integer status = DeliveryStatus.PENDING;
-                        if (firstDelivery && previousDeliveriesAreCompleted) {
-                            status = DeliveryStatus.READY_TO_TRANSFER;
-                        }
-
-                        EventDelivery delivery = new EventDelivery(null,
-                                event.streamId,
-                                ++maxDeliveryOrder,
-                                eventId,
-                                status,
-                                0,
-                                null,
-                                null,
-                                handlerCode
-                                );
-
-                        insertEventDelivery(delivery, connection);
-                        firstDelivery = false;
-                    }
+                    saveEvent(event, positionInfo, connection);
                 }
+
                 connection.commit();
-            } catch (SQLException e) {
+            } catch (SQLException | MapperException e) {
                 connection.rollback(transaction);
                 throw e;
             }
+        }
+    }
+
+    private void saveEvent(Event event, PositionInfo positionInfo, Connection connection) throws SQLException {
+
+        long eventId = insertEventLog(event, ++positionInfo.position, connection);
+
+        for (String handlerCode : event.handlerCodes) {
+            Integer status = DeliveryStatus.PENDING;
+            if (positionInfo.previousDeliveriesAreCompleted) {
+                status = DeliveryStatus.READY_TO_TRANSFER;
+                positionInfo.previousDeliveriesAreCompleted = false;
+            }
+
+            EventDelivery delivery = new EventDelivery(null,
+                    event.streamId,
+                    ++positionInfo.deliveryOrder,
+                    eventId,
+                    status,
+                    0,
+                    null,
+                    null,
+                    handlerCode
+            );
+
+            insertEventDelivery(delivery, connection);
         }
     }
 
@@ -115,7 +116,7 @@ public class EventRepository {
                 .execute(connection);
     }
 
-    private StreamPositionSummary getStreamPositionSummary(String streamId, Connection connection) throws SQLException {
+    private StreamPositionSummary getStreamPositionSummary(String streamId, Connection connection) throws SQLException, MapperException {
         List<StreamPositionSummary> result = JdbcQuery.query(SELECT_STREAM_POSITION_SUMMARY)
                 .withParams(streamId)
                 .withMapper(StreamPositionSummaryMapper::map)
@@ -137,5 +138,15 @@ public class EventRepository {
         return connection.setSavepoint();
     }
 
+    static class PositionInfo {
+        int position;
+        int deliveryOrder;
+        boolean previousDeliveriesAreCompleted;
 
+        public PositionInfo(StreamPositionSummary streamPositionSummary) {
+            this.position = streamPositionSummary.maxPosition;
+            this.deliveryOrder = streamPositionSummary.maxDeliveryOrder;
+            this.previousDeliveriesAreCompleted = streamPositionSummary.latestEventStatus == DeliveryStatus.COMPLETED;
+        }
+    }
 }

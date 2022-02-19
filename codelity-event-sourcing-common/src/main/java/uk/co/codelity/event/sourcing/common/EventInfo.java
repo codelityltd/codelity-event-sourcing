@@ -1,5 +1,7 @@
 package uk.co.codelity.event.sourcing.common;
 
+import java.util.Objects;
+
 public class EventInfo {
     public final String streamId;
     public final Integer position;
@@ -24,5 +26,28 @@ public class EventInfo {
                 ", metadata='" + metadata + '\'' +
                 ", payload='" + payload + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        EventInfo eventInfo = (EventInfo) o;
+        return streamId.equals(eventInfo.streamId) &&
+                position.equals(eventInfo.position) &&
+                name.equals(eventInfo.name) &&
+                Objects.equals(metadata, eventInfo.metadata) &&
+                payload.equals(eventInfo.payload);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(streamId, position, name, metadata, payload);
     }
 }

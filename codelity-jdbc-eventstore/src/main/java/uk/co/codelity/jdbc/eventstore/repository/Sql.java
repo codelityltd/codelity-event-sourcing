@@ -15,4 +15,6 @@ public class Sql {
 
     static final String SELECT_EVENTS_BY_STREAMID = "select * from event where stream_id=? order by position asc";
 
+    private Sql() {
+    }
 }

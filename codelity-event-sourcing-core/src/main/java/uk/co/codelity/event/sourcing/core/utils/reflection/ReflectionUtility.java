@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -22,7 +23,9 @@ public class ReflectionUtility {
     private ReflectionUtility(){
     }
 
-    public static Set<Method> getMethodsWithAnnotation(String packageName, Class<? extends Annotation> annotation) throws Exception {
+    public static Set<Method> getMethodsWithAnnotation(String packageName, Class<? extends Annotation> annotation)
+            throws IOException, URISyntaxException, ClassNotFoundException {
+
         Set<Class<?>> classes = getClasses(packageName);
         return classes.stream()
                 .flatMap(c -> Arrays.stream(c.getMethods()))
@@ -30,19 +33,25 @@ public class ReflectionUtility {
                 .collect(Collectors.toSet());
     }
 
-    public static Set<Class<?>> getClassesWithAnnotation(String packageName, Class<? extends Annotation> annotation) throws Exception {
+    public static Set<Class<?>> getClassesWithAnnotation(String packageName, Class<? extends Annotation> annotation)
+            throws IOException, URISyntaxException, ClassNotFoundException {
+
         Set<Class<?>> classes = getClasses(packageName);
         return classes.stream().filter(c -> nonNull(c.getAnnotation(annotation)))
                 .collect(Collectors.toSet());
     }
 
-    public static Optional<Class<?>> getAnyClassWithAnnotation(String packageName, Class<? extends Annotation> annotation) throws Exception {
+    public static Optional<Class<?>> getAnyClassWithAnnotation(String packageName, Class<? extends Annotation> annotation)
+            throws IOException, URISyntaxException, ClassNotFoundException {
+
         Set<Class<?>> classes = getClasses(packageName);
         return classes.stream().filter(c -> nonNull(c.getAnnotation(annotation)))
                 .findAny();
     }
 
-    public static Set<Class<?>> getClasses(String packageName) throws Exception {
+    public static Set<Class<?>> getClasses(String packageName)
+            throws IOException, URISyntaxException, ClassNotFoundException {
+
         Enumeration<URL> urls = getResources(packageName);
         Set<Class<?>> result = new HashSet<>();
         while (urls.hasMoreElements()) {
