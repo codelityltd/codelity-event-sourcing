@@ -15,7 +15,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.util.List;
+import java.util.Optional;
 
+import static java.util.Objects.isNull;
 import static uk.co.codelity.jdbc.eventstore.repository.Sql.INSERT_EVENTLOGDELIVERY_SQL;
 import static uk.co.codelity.jdbc.eventstore.repository.Sql.INSERT_EVENTLOG_SQL;
 import static uk.co.codelity.jdbc.eventstore.repository.Sql.SELECT_STREAM_POSITION_SUMMARY;
@@ -145,8 +147,9 @@ public class EventRepository {
 
         public PositionInfo(StreamPositionSummary streamPositionSummary) {
             this.position = streamPositionSummary.maxPosition;
-            this.deliveryOrder = streamPositionSummary.maxDeliveryOrder;
-            this.previousDeliveriesAreCompleted = streamPositionSummary.latestEventStatus == DeliveryStatus.COMPLETED;
+            this.deliveryOrder = Optional.ofNullable(streamPositionSummary.maxDeliveryOrder).orElse(0);
+            this.previousDeliveriesAreCompleted = isNull(streamPositionSummary.latestEventStatus)
+                    || streamPositionSummary.latestEventStatus == DeliveryStatus.COMPLETED;
         }
     }
 }

@@ -1,5 +1,6 @@
 package uk.co.codelity.event.sourcing.core.bootstrap;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -73,10 +74,6 @@ class BootstrapperTest {
     void shouldNotScanWhenEventSourcingNotEnabled() throws Exception {
         EventSourcingContext eventSourcingContext = bootstrapper.initContext(App.class.getPackageName());
 
-        assertThat(eventSourcingContext.getEventClasses(), is(notNullValue()));
-        assertThat(eventSourcingContext.getEventHandlerMethods(), is(notNullValue()));
-        assertThat(eventSourcingContext.getAggregateEventHandlerMethods(), is(notNullValue()));
-
         verify(eventScanner, never()).scanForEvents(any());
         verify(eventHandlerScanner, never()).scanForEventHandlers(any());
         verify(aggregateEventHandlerScanner, never()).scanForAggregateEventHandlers(any());
@@ -97,9 +94,9 @@ class BootstrapperTest {
 
         EventSourcingContext eventSourcingContext = bootstrapper.initContext(appPackage);
 
-        assertThat(eventSourcingContext.getEventClasses(), is(List.of(event1, event2)));
+        assertThat(eventSourcingContext.getEventType("Event-1"), is(event1));
+        assertThat(eventSourcingContext.getEventType("Event-2"), is(event2));
         assertThat(eventSourcingContext.getEventHandlerMethods(), is(List.of(eventHandler1, eventHandler2)));
-        assertThat(eventSourcingContext.getAggregateEventHandlerMethods(), is(List.of(aggregateEventHandler1, aggregateEventHandler2)));
 
         verify(eventScanner, times(1)).scanForEvents(packagesCaptor.capture());
         assertThat(packagesCaptor.getValue(), is(new String[]{ appPackage }));

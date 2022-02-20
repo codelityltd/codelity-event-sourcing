@@ -2,7 +2,9 @@ package uk.co.codelity.event.sourcing.core.bootstrap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.co.codelity.event.sourcing.common.annotation.AggregateEventHandler;
 import uk.co.codelity.event.sourcing.common.annotation.AggregateEventHandlerScan;
+import uk.co.codelity.event.sourcing.common.annotation.Event;
 import uk.co.codelity.event.sourcing.common.annotation.EventHandlerScan;
 import uk.co.codelity.event.sourcing.common.annotation.EventScan;
 import uk.co.codelity.event.sourcing.common.annotation.EventSourcingEnabled;
@@ -17,6 +19,9 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -47,10 +52,29 @@ public class Bootstrapper {
         Collection<Method> eventHandlerMethods = scanForEventHandlers(applicationPackageName);
         Collection<Method> aggregateEventHandlerMethods = scanForAggregateEventHandlers(applicationPackageName);
 
+        Map<String, Class<?>> eventNameAndTypeMapping = new HashMap<>();
+        eventClasses.forEach(
+                clazz -> {
+                    Event event = clazz.getAnnotation(Event.class);
+                    eventNameAndTypeMapping.put(event.name(), clazz);
+                }
+        );
+
+        Map<String, Method> aggregateEventHandlers = new HashMap<>();
+        aggregateEventHandlerMethods.forEach(
+                method -> {
+                    AggregateEventHandler aggregateMethod = method.getAnnotation(AggregateEventHandler.class);
+                    if (nonNull(aggregateMethod)) {
+                        String eventClassName = method.getParameterTypes()[0].getName();
+                        aggregateEventHandlers.put(eventClassName, method);
+                    }
+                }
+        );
+
         return EventSourcingContext.builder()
-                .withEvents(eventClasses)
+                .withEvents(eventNameAndTypeMapping)
                 .withEventHandlers(eventHandlerMethods)
-                .withAggregateEventHandlers(aggregateEventHandlerMethods)
+                .withAggregateEventHandlers(aggregateEventHandlers)
                 .build();
     }
 
