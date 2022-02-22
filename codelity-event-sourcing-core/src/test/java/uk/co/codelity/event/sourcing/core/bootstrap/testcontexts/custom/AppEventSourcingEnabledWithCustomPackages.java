@@ -1,4 +1,4 @@
-package uk.co.codelity.event.sourcing.core.bootstrap.testapps.ns3;
+package uk.co.codelity.event.sourcing.core.bootstrap.testcontexts.custom;
 
 import uk.co.codelity.event.sourcing.common.annotation.AggregateEventHandlerScan;
 import uk.co.codelity.event.sourcing.common.annotation.EventHandlerScan;

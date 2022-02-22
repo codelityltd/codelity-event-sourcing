@@ -8,14 +8,13 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.co.codelity.event.sourcing.common.annotation.AggregateEventHandlerScan;
-import uk.co.codelity.event.sourcing.common.annotation.Event;
-import uk.co.codelity.event.sourcing.common.annotation.EventHandlerScan;
-import uk.co.codelity.event.sourcing.common.annotation.EventScan;
-import uk.co.codelity.event.sourcing.common.annotation.EventSourcingEnabled;
-import uk.co.codelity.event.sourcing.core.bootstrap.testapps.ns1.App;
-import uk.co.codelity.event.sourcing.core.bootstrap.testapps.ns2.AppEventSourcingEnabled;
-import uk.co.codelity.event.sourcing.core.bootstrap.testapps.ns3.AppEventSourcingEnabledWithCustomPackages;
+import uk.co.codelity.event.sourcing.core.bootstrap.testcontexts.autoconf.AppEventSourcingEnabled;
+import uk.co.codelity.event.sourcing.core.bootstrap.testcontexts.autoconf.Event1;
+import uk.co.codelity.event.sourcing.core.bootstrap.testcontexts.autoconf.Event2;
+import uk.co.codelity.event.sourcing.core.bootstrap.testcontexts.autoconf.TestAggregate;
+import uk.co.codelity.event.sourcing.core.bootstrap.testcontexts.autoconf.TestEventListener;
+import uk.co.codelity.event.sourcing.core.bootstrap.testcontexts.custom.AppEventSourcingEnabledWithCustomPackages;
+import uk.co.codelity.event.sourcing.core.bootstrap.testcontexts.noconfig.App;
 import uk.co.codelity.event.sourcing.core.context.EventSourcingContext;
 import uk.co.codelity.event.sourcing.core.scanner.AggregateEventHandlerScanner;
 import uk.co.codelity.event.sourcing.core.scanner.EventHandlerScanner;
@@ -25,7 +24,6 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -42,18 +40,10 @@ class BootstrapperTest {
     Class<?> event1 = Event1.class;
     Class<?> event2 = Event2.class;
 
-    @Mock
     Method eventHandler1;
-
-    @Mock
     Method eventHandler2;
-
-    @Mock
     Method aggregateEventHandler1;
-
-    @Mock
     Method aggregateEventHandler2;
-
 
     @Mock
     EventScanner eventScanner;
@@ -69,6 +59,14 @@ class BootstrapperTest {
 
     @InjectMocks
     Bootstrapper bootstrapper;
+
+    @BeforeEach
+    void setUp() throws NoSuchMethodException {
+        eventHandler1 = TestEventListener.class.getMethod("handleEvent1", Event1.class);
+        eventHandler2 = TestEventListener.class.getMethod("handleEvent2", Event2.class);
+        aggregateEventHandler1  = TestAggregate.class.getMethod("handleEvent1", Event1.class);
+        aggregateEventHandler2  = TestAggregate.class.getMethod("handleEvent2", Event2.class);
+    }
 
     @Test
     void shouldNotScanWhenEventSourcingNotEnabled() throws Exception {
@@ -123,9 +121,5 @@ class BootstrapperTest {
         assertThat(packagesCaptor.getValue(), is(new String[]{ CUSTOM_AGGREGATE_EVENT_HANDLER_PKG }));
     }
 
-    @Event(name="Event-1")
-    static class Event1 {}
 
-    @Event(name="Event-2")
-    static class Event2 {}
 }

@@ -46,12 +46,8 @@ class EventScannerTest {
         assertThat(eventClasses, containsInAnyOrder(event1, event2));
     }
 
-    static class Event1 {
+    static class Event1 { }
 
-    }
-
-    static class Event2 {
-
-    }
+    static class Event2 { }
 
 }
