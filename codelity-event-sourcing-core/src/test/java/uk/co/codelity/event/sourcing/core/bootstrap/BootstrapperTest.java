@@ -124,12 +124,8 @@ class BootstrapperTest {
     }
 
     @Event(name="Event-1")
-    static class Event1 {
-
-    }
+    static class Event1 {}
 
     @Event(name="Event-2")
-    static class Event2 {
-
-    }
+    static class Event2 {}
 }

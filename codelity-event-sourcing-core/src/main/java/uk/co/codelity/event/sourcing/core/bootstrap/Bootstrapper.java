@@ -13,6 +13,7 @@ import uk.co.codelity.event.sourcing.core.exceptions.BootstrapException;
 import uk.co.codelity.event.sourcing.core.scanner.AggregateEventHandlerScanner;
 import uk.co.codelity.event.sourcing.core.scanner.EventHandlerScanner;
 import uk.co.codelity.event.sourcing.core.scanner.EventScanner;
+import uk.co.codelity.event.sourcing.core.utils.HandlerLambdaFactory;
 import uk.co.codelity.event.sourcing.core.utils.reflection.ReflectionUtility;
 
 import java.io.IOException;
@@ -24,7 +25,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiConsumer;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
@@ -53,23 +56,36 @@ public class Bootstrapper {
         Collection<Method> aggregateEventHandlerMethods = scanForAggregateEventHandlers(applicationPackageName);
 
         Map<String, Class<?>> eventNameAndTypeMapping = new HashMap<>();
-        eventClasses.forEach(
-                clazz -> {
-                    Event event = clazz.getAnnotation(Event.class);
-                    eventNameAndTypeMapping.put(event.name(), clazz);
-                }
-        );
+        for (Class<?> clazz: eventClasses) {
+            Event event = clazz.getAnnotation(Event.class);
+            if (isNull(event.name())) {
+                throw new BootstrapException(String.format("Event annotation mush have name attribute. class: %s", clazz.getName()));
+            }
+            eventNameAndTypeMapping.put(event.name(), clazz);
+        }
 
-        Map<String, Method> aggregateEventHandlers = new HashMap<>();
-        aggregateEventHandlerMethods.forEach(
-                method -> {
-                    AggregateEventHandler aggregateMethod = method.getAnnotation(AggregateEventHandler.class);
-                    if (nonNull(aggregateMethod)) {
-                        String eventClassName = method.getParameterTypes()[0].getName();
-                        aggregateEventHandlers.put(eventClassName, method);
-                    }
+        Map<String, BiConsumer<?, ?>> aggregateEventHandlers = new HashMap<>();
+        for (Method method: aggregateEventHandlerMethods) {
+            AggregateEventHandler aggregateMethod = method.getAnnotation(AggregateEventHandler.class);
+            if (nonNull(aggregateMethod)) {
+                if (method.getParameterCount() != 1) {
+                    throw new BootstrapException(String.format("Aggregate event handler has more than one parameter. class: %s method: %s", method.getDeclaringClass().getName(), method.getName()));
                 }
-        );
+
+                Class<?> eventClass = method.getParameterTypes()[0];
+                Event eventAnnotation = eventClass.getAnnotation(Event.class);
+                if (isNull(eventAnnotation)) {
+                    throw new BootstrapException(String.format("Aggregate event handler has a parameter which is not annotated with @Event. class: %s method: %s", method.getDeclaringClass().getName(), method.getName()));
+                }
+
+                try {
+                    BiConsumer<?, ?> handler = HandlerLambdaFactory.createHandlerLambda(method.getDeclaringClass(), eventClass, method.getName());
+                    aggregateEventHandlers.put(eventAnnotation.name(), handler);
+                } catch (Throwable e) {
+                    throw new BootstrapException("Aggregate event handler proxy could not be created.", e);
+                }
+            }
+        }
 
         return EventSourcingContext.builder()
                 .withEvents(eventNameAndTypeMapping)

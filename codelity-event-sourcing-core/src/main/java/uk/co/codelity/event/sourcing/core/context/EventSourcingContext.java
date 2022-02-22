@@ -8,13 +8,14 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 public class EventSourcingContext implements EventHandlerRegistry {
     private final Map<String, Class<?>> eventNameAndTypeMapping;
     private final Collection<Method> eventHandlerMethods;
-    private final Map<String, Method> aggregateEventHandlers;
+    private final Map<String, BiConsumer<?, ?>> aggregateEventHandlers;
 
-    private EventSourcingContext(Map<String, Class<?>> eventNameAndTypeMapping, Collection<Method> eventHandlerMethods, Map<String, Method> aggregateEventHandlers){
+    private EventSourcingContext(Map<String, Class<?>> eventNameAndTypeMapping, Collection<Method> eventHandlerMethods, Map<String, BiConsumer<?, ?>> aggregateEventHandlers){
         this.eventNameAndTypeMapping = eventNameAndTypeMapping;
         this.eventHandlerMethods = eventHandlerMethods;
         this.aggregateEventHandlers = aggregateEventHandlers;
@@ -36,7 +37,7 @@ public class EventSourcingContext implements EventHandlerRegistry {
         }
     }
 
-    public Method getEventHandler(String eventName) throws AggregateEventHandlerNotFoundException {
+    public BiConsumer<?, ?> getEventHandler(String eventName) throws AggregateEventHandlerNotFoundException {
         if (!this.aggregateEventHandlers.containsKey(eventName)) {
             throw new AggregateEventHandlerNotFoundException(eventName);
         } else {
@@ -52,7 +53,7 @@ public class EventSourcingContext implements EventHandlerRegistry {
     public static class EventSourcingContextBuilder {
         private Map<String, Class<?>> eventNameAndTypeMapping = Collections.emptyMap();
         private Collection<Method> eventHandlerMethods = Collections.emptySet();
-        private Map<String, Method> aggregateEventHandlers = Collections.emptyMap();
+        private Map<String, BiConsumer<?, ?>> aggregateEventHandlers = Collections.emptyMap();
 
         public EventSourcingContextBuilder withEvents(Map<String, Class<?>> eventNameAndTypeMapping) {
             this.eventNameAndTypeMapping = eventNameAndTypeMapping;
@@ -64,7 +65,7 @@ public class EventSourcingContext implements EventHandlerRegistry {
             return this;
         }
 
-        public EventSourcingContextBuilder withAggregateEventHandlers(Map<String, Method> aggregateEventHandlers) {
+        public EventSourcingContextBuilder withAggregateEventHandlers(Map<String, BiConsumer<?, ?>> aggregateEventHandlers) {
             this.aggregateEventHandlers = aggregateEventHandlers;
             return this;
         }
