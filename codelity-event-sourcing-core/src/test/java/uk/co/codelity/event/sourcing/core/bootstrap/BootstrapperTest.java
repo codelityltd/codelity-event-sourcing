@@ -13,7 +13,6 @@ import uk.co.codelity.event.sourcing.core.bootstrap.testcontexts.autoconf.Event1
 import uk.co.codelity.event.sourcing.core.bootstrap.testcontexts.autoconf.Event2;
 import uk.co.codelity.event.sourcing.core.bootstrap.testcontexts.autoconf.TestAggregate;
 import uk.co.codelity.event.sourcing.core.bootstrap.testcontexts.autoconf.TestEventListener;
-import uk.co.codelity.event.sourcing.core.bootstrap.testcontexts.custom.AppEventSourcingEnabledWithCustomPackages;
 import uk.co.codelity.event.sourcing.core.bootstrap.testcontexts.noconfig.App;
 import uk.co.codelity.event.sourcing.core.context.EventSourcingContext;
 import uk.co.codelity.event.sourcing.core.scanner.AggregateEventHandlerScanner;
@@ -33,9 +32,6 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BootstrapperTest {
-    public static final String CUSTOM_EVENTS_PKG = "com.events";
-    public static final String CUSTOM_EVENT_HANDLER_PKG = "com.event.handlers";
-    public static final String CUSTOM_AGGREGATE_EVENT_HANDLER_PKG = "com.aggregate.event.handlers";
 
     Class<?> event1 = Event1.class;
     Class<?> event2 = Event2.class;
@@ -55,7 +51,7 @@ class BootstrapperTest {
     AggregateEventHandlerScanner aggregateEventHandlerScanner;
 
     @Captor
-    ArgumentCaptor<String[]> packagesCaptor;
+    ArgumentCaptor<String> appPackageCaptor;
 
     @InjectMocks
     Bootstrapper bootstrapper;
@@ -70,7 +66,7 @@ class BootstrapperTest {
 
     @Test
     void shouldNotScanWhenEventSourcingNotEnabled() throws Exception {
-        EventSourcingContext eventSourcingContext = bootstrapper.initContext(App.class.getPackageName());
+        bootstrapper.initContext(App.class.getPackageName());
 
         verify(eventScanner, never()).scanForEvents(any());
         verify(eventHandlerScanner, never()).scanForEventHandlers(any());
@@ -96,30 +92,14 @@ class BootstrapperTest {
         assertThat(eventSourcingContext.getEventType("Event-2"), is(event2));
         assertThat(eventSourcingContext.getEventHandlerMethods(), is(List.of(eventHandler1, eventHandler2)));
 
-        verify(eventScanner, times(1)).scanForEvents(packagesCaptor.capture());
-        assertThat(packagesCaptor.getValue(), is(new String[]{ appPackage }));
+        verify(eventScanner, times(1)).scanForEvents(appPackageCaptor.capture());
+        assertThat(appPackageCaptor.getValue(), is(appPackage ));
 
-        verify(eventHandlerScanner, times(1)).scanForEventHandlers(packagesCaptor.capture());
-        assertThat(packagesCaptor.getValue(), is(new String[]{ appPackage }));
+        verify(eventHandlerScanner, times(1)).scanForEventHandlers(appPackageCaptor.capture());
+        assertThat(appPackageCaptor.getValue(), is(appPackage));
 
-        verify(aggregateEventHandlerScanner, times(1)).scanForAggregateEventHandlers(packagesCaptor.capture());
-        assertThat(packagesCaptor.getValue(), is(new String[]{ appPackage }));
+        verify(aggregateEventHandlerScanner, times(1)).scanForAggregateEventHandlers(appPackageCaptor.capture());
+        assertThat(appPackageCaptor.getValue(), is(appPackage));
     }
-
-
-    @Test
-    void shouldScanCustomPackagesWhenEventSourcingEnabled() throws Exception {
-        bootstrapper.initContext(AppEventSourcingEnabledWithCustomPackages.class.getPackageName());
-
-        verify(eventScanner, times(1)).scanForEvents(packagesCaptor.capture());
-        assertThat(packagesCaptor.getValue(), is(new String[]{ CUSTOM_EVENTS_PKG }));
-
-        verify(eventHandlerScanner, times(1)).scanForEventHandlers(packagesCaptor.capture());
-        assertThat(packagesCaptor.getValue(), is(new String[]{ CUSTOM_EVENT_HANDLER_PKG }));
-
-        verify(aggregateEventHandlerScanner, times(1)).scanForAggregateEventHandlers(packagesCaptor.capture());
-        assertThat(packagesCaptor.getValue(), is(new String[]{ CUSTOM_AGGREGATE_EVENT_HANDLER_PKG }));
-    }
-
 
 }

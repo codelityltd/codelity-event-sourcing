@@ -3,10 +3,7 @@ package uk.co.codelity.event.sourcing.core.bootstrap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.codelity.event.sourcing.common.annotation.AggregateEventHandler;
-import uk.co.codelity.event.sourcing.common.annotation.AggregateEventHandlerScan;
 import uk.co.codelity.event.sourcing.common.annotation.Event;
-import uk.co.codelity.event.sourcing.common.annotation.EventHandlerScan;
-import uk.co.codelity.event.sourcing.common.annotation.EventScan;
 import uk.co.codelity.event.sourcing.common.annotation.EventSourcingEnabled;
 import uk.co.codelity.event.sourcing.core.context.EventSourcingContext;
 import uk.co.codelity.event.sourcing.core.exceptions.BootstrapException;
@@ -20,10 +17,8 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
@@ -55,15 +50,18 @@ public class Bootstrapper {
         Collection<Method> eventHandlerMethods = scanForEventHandlers(applicationPackageName);
         Collection<Method> aggregateEventHandlerMethods = scanForAggregateEventHandlers(applicationPackageName);
 
-        Map<String, Class<?>> eventNameAndTypeMapping = new HashMap<>();
-        for (Class<?> clazz: eventClasses) {
-            Event event = clazz.getAnnotation(Event.class);
-            if (isNull(event.name())) {
-                throw new BootstrapException(String.format("Event annotation mush have name attribute. class: %s", clazz.getName()));
-            }
-            eventNameAndTypeMapping.put(event.name(), clazz);
-        }
+        Map<String, Class<?>> eventNameAndTypeMapping = buildEventNameAndTypeMapping(eventClasses);
+        Map<String, BiConsumer<?, ?>> aggregateEventHandlers = buildAggregateEventHandlers(aggregateEventHandlerMethods);
 
+
+        return EventSourcingContext.builder()
+                .withEvents(eventNameAndTypeMapping)
+                .withEventHandlers(eventHandlerMethods)
+                .withAggregateEventHandlers(aggregateEventHandlers)
+                .build();
+    }
+
+    private Map<String, BiConsumer<?, ?>> buildAggregateEventHandlers(Collection<Method> aggregateEventHandlerMethods) throws BootstrapException {
         Map<String, BiConsumer<?, ?>> aggregateEventHandlers = new HashMap<>();
         for (Method method: aggregateEventHandlerMethods) {
             AggregateEventHandler aggregateMethod = method.getAnnotation(AggregateEventHandler.class);
@@ -86,12 +84,20 @@ public class Bootstrapper {
                 }
             }
         }
+        return aggregateEventHandlers;
+    }
 
-        return EventSourcingContext.builder()
-                .withEvents(eventNameAndTypeMapping)
-                .withEventHandlers(eventHandlerMethods)
-                .withAggregateEventHandlers(aggregateEventHandlers)
-                .build();
+    private Map<String, Class<?>> buildEventNameAndTypeMapping (Collection<Class<?>> eventClasses) throws BootstrapException {
+        Map<String, Class<?>> eventNameAndTypeMapping = new HashMap<>();
+        for (Class<?> clazz: eventClasses) {
+            Event event = clazz.getAnnotation(Event.class);
+            if (isNull(event.name())) {
+                throw new BootstrapException(String.format("Event annotation mush have name attribute. class: %s", clazz.getName()));
+            }
+            eventNameAndTypeMapping.put(event.name(), clazz);
+        }
+
+        return eventNameAndTypeMapping;
     }
 
     private boolean isEventSourcingEnabled(String applicationPackageName) throws BootstrapException {
@@ -104,11 +110,8 @@ public class Bootstrapper {
     }
 
     private Collection<Class<?>> scanForEvents(String applicationPackageName) throws BootstrapException {
-        String[] packages = eventPackages(applicationPackageName);
-        String packagesAsStr = String.join(",", packages);
-        logger.info("ApplicationEventListener is scanning for events. Packages are being scanned {}", packagesAsStr);
         try {
-            Collection<Class<?>> eventClasses = eventScanner.scanForEvents(packages);
+            Collection<Class<?>> eventClasses = eventScanner.scanForEvents(applicationPackageName);
             logger.info("Event scan is completed.");
             return eventClasses;
         } catch (IOException | URISyntaxException | ClassNotFoundException e) {
@@ -117,11 +120,8 @@ public class Bootstrapper {
     }
 
     private Collection<Method> scanForEventHandlers(String applicationPackageName) throws BootstrapException {
-        String[] packages = eventHandlerPackages(applicationPackageName);
-        String packagesAsStr = String.join(",", packages);
-        logger.info("ApplicationEventListener is scanning for event handler methods. Packages are being scanned {}", packagesAsStr);
         try {
-            Collection<Method> eventHandlerMethods = eventHandlerScanner.scanForEventHandlers(packages);
+            Collection<Method> eventHandlerMethods = eventHandlerScanner.scanForEventHandlers(applicationPackageName);
             logger.info("EventHandler scan is completed.");
             return eventHandlerMethods;
         } catch (IOException | URISyntaxException | ClassNotFoundException e) {
@@ -130,64 +130,12 @@ public class Bootstrapper {
     }
 
     private Collection<Method> scanForAggregateEventHandlers(String applicationPackageName) throws BootstrapException {
-        String[] packages = aggregateEventHandlerPackages(applicationPackageName);
-        String packagesAsStr = String.join(",", packages);
-        logger.info("ApplicationEventListener is scanning for aggregate event handlers. Packages are being scanned {}", packagesAsStr);
         try {
-            Collection<Method> methods = aggregateEventHandlerScanner.scanForAggregateEventHandlers(packages);
+            Collection<Method> methods = aggregateEventHandlerScanner.scanForAggregateEventHandlers(applicationPackageName);
             logger.info("Aggregate scan is completed.");
             return methods;
         } catch (IOException | URISyntaxException | ClassNotFoundException e) {
             throw new BootstrapException("An error occured while scanning for AggregateEventHandler annotations.", e);
         }
     }
-
-    private String[] eventPackages(String applicationPackageName) throws BootstrapException {
-        try {
-            Optional<Class<?>> clazz = ReflectionUtility.getAnyClassWithAnnotation(applicationPackageName, EventScan.class);
-            if (clazz.isPresent()) {
-                EventScan eventScan = clazz.get().getAnnotation(EventScan.class);
-                if (nonNull(eventScan)) {
-                    return eventScan.basePackages();
-                }
-            }
-
-            return new String[]{applicationPackageName};
-        } catch (IOException | URISyntaxException | ClassNotFoundException e) {
-            throw new BootstrapException("An error occured while scanning for EventScan annotation.", e);
-        }
-    }
-
-    private String[] eventHandlerPackages(String applicationPackageName) throws BootstrapException {
-        try {
-            Optional<Class<?>> clazz = ReflectionUtility.getAnyClassWithAnnotation(applicationPackageName, EventHandlerScan.class);
-            if (clazz.isPresent()) {
-                EventHandlerScan eventScan = clazz.get().getAnnotation(EventHandlerScan.class);
-                if (nonNull(eventScan)) {
-                    return eventScan.basePackages();
-                }
-            }
-
-            return new String[] { applicationPackageName };
-        } catch (IOException | URISyntaxException | ClassNotFoundException e) {
-            throw new BootstrapException("An error occured while scanning for EventHandlerScan annotation.", e);
-        }
-    }
-
-    private String[] aggregateEventHandlerPackages(String applicationPackageName) throws BootstrapException {
-        try {
-            Optional<Class<?>> clazz = ReflectionUtility.getAnyClassWithAnnotation(applicationPackageName, AggregateEventHandlerScan.class);
-            if (clazz.isPresent()) {
-                AggregateEventHandlerScan eventScan = clazz.get().getAnnotation(AggregateEventHandlerScan.class);
-                if (nonNull(eventScan)) {
-                    return eventScan.basePackages();
-                }
-            }
-
-            return new String[]{applicationPackageName};
-        } catch (IOException | URISyntaxException | ClassNotFoundException e) {
-            throw new BootstrapException("An error occured while scanning for AggregateEventHandlerScan annotation.", e);
-        }
-    }
-
 }
