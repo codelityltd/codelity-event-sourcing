@@ -11,4 +11,12 @@ public class TestAggregate {
     @AggregateEventHandler
     public void handleEvent2(Event2 event) {
     }
+
+    @AggregateEventHandler
+    public void invalidHandlerMultiParams(Event1 event, Integer no) {
+    }
+
+    @AggregateEventHandler
+    public void invalidHandlerNonEventArg(Integer no) {
+    }
 }

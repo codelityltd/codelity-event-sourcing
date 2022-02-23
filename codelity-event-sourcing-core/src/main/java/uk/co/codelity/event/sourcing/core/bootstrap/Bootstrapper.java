@@ -91,8 +91,8 @@ public class Bootstrapper {
         Map<String, Class<?>> eventNameAndTypeMapping = new HashMap<>();
         for (Class<?> clazz: eventClasses) {
             Event event = clazz.getAnnotation(Event.class);
-            if (isNull(event.name())) {
-                throw new BootstrapException(String.format("Event annotation mush have name attribute. class: %s", clazz.getName()));
+            if (event.name().isBlank()) {
+                throw new BootstrapException(String.format("Event's name attribute is blank. class: %s", clazz.getName()));
             }
             eventNameAndTypeMapping.put(event.name(), clazz);
         }
@@ -105,7 +105,7 @@ public class Bootstrapper {
             Set<Class<?>> classes = ReflectionUtility.getClassesWithAnnotation(applicationPackageName, EventSourcingEnabled.class);
             return !classes.isEmpty();
         } catch (IOException | URISyntaxException | ClassNotFoundException e) {
-            throw new BootstrapException("An error occured while looking at EventSourcingEnabled annotation.", e);
+            throw new BootstrapException("An error occurred while looking at EventSourcingEnabled annotation.", e);
         }
     }
 
@@ -115,7 +115,7 @@ public class Bootstrapper {
             logger.info("Event scan is completed.");
             return eventClasses;
         } catch (IOException | URISyntaxException | ClassNotFoundException e) {
-            throw new BootstrapException("An error occured while scanning for Event annotations.", e);
+            throw new BootstrapException("An error occurred while scanning for Event annotations.", e);
         }
     }
 
@@ -125,7 +125,7 @@ public class Bootstrapper {
             logger.info("EventHandler scan is completed.");
             return eventHandlerMethods;
         } catch (IOException | URISyntaxException | ClassNotFoundException e) {
-            throw new BootstrapException("An error occured while scanning for EventHandler annotations.", e);
+            throw new BootstrapException("An error occurred while scanning for EventHandler annotations.", e);
         }
     }
 
@@ -135,7 +135,7 @@ public class Bootstrapper {
             logger.info("Aggregate scan is completed.");
             return methods;
         } catch (IOException | URISyntaxException | ClassNotFoundException e) {
-            throw new BootstrapException("An error occured while scanning for AggregateEventHandler annotations.", e);
+            throw new BootstrapException("An error occurred while scanning for AggregateEventHandler annotations.", e);
         }
     }
 }
