@@ -1,0 +1,5 @@
+eventstore:
+  jdbc:
+    url: jdbc:postgresql://localhost/catalog_eventstore
+    user: postgres
+    password: 12345

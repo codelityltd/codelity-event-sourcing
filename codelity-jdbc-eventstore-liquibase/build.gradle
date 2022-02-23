@@ -1,0 +1,26 @@
+plugins {
+    id "org.liquibase.gradle" version "2.1.1"
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    liquibaseRuntime 'info.picocli:picocli:4.6.2'
+    liquibaseRuntime("org.liquibase:liquibase-core:4.7.1")
+    liquibaseRuntime("org.postgresql:postgresql:42.3.3")
+    liquibaseRuntime group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.1'
+}
+
+liquibase {
+    activities {
+        main {
+            changeLogFile "codelity-jdbc-eventstore-liquibase/changelog/db.changelog-1.0.xml"
+            url 'jdbc:postgresql://localhost:5432/catalog_eventstore'
+            username 'postgres'
+            password '12345'
+        }
+    }
+}

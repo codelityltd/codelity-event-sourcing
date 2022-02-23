@@ -12,6 +12,7 @@ import uk.co.codelity.jdbc.eventstore.repository.helpers.JdbcTestHelper;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -57,6 +58,20 @@ class EventRepositoryTest {
         assertThat(eventDeliveryList.get(1).deliveryOrder, is(2));
         assertThat(eventDeliveryList.get(1).status, is(DeliveryStatus.PENDING));
     }
+
+    @Test
+    void shouldPersistsAndReadsEventsWithoutDelivery() throws Exception {
+        final String streamId = UUID.randomUUID().toString();
+        whenEventsAreSaved(streamId, List.of(createEventWithoutDelivery(streamId, 1)));
+
+        final List<Event> events = eventRepository.findEventsByStreamIdOrderedByPosition(streamId);
+        assertThat(events.size(), is(1));
+        assertThat(events.get(0).position, is(1));
+
+        List<EventDelivery> eventDeliveryList = JdbcTestHelper.getDeliveryListByStreamId(streamId);
+        assertThat(eventDeliveryList.size(), is(0));
+    }
+
 
     @Test
     void statusShouldBePendingWhenPreviousDeliveryIsNotCompleted() throws Exception {
@@ -116,5 +131,17 @@ class EventRepositoryTest {
                 "<payload>",
                 LocalDateTime.now(),
                 List.of("HANDLER_CODE"));
+    }
+
+    private Event createEventWithoutDelivery(final String streamId, final int position) {
+        return new Event(
+                null,
+                streamId,
+                null,
+                "Event-" + position,
+                "",
+                "<payload>",
+                LocalDateTime.now(),
+                Collections.emptyList());
     }
 }

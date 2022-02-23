@@ -1,32 +1,39 @@
 package uk.co.codelity.event.sourcing.core.bootstrap;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.co.codelity.event.sourcing.common.annotation.AggregateEventHandlerScan;
-import uk.co.codelity.event.sourcing.common.annotation.Event;
-import uk.co.codelity.event.sourcing.common.annotation.EventHandlerScan;
-import uk.co.codelity.event.sourcing.common.annotation.EventScan;
 import uk.co.codelity.event.sourcing.common.annotation.EventSourcingEnabled;
-import uk.co.codelity.event.sourcing.core.bootstrap.testapps.ns1.App;
-import uk.co.codelity.event.sourcing.core.bootstrap.testapps.ns2.AppEventSourcingEnabled;
-import uk.co.codelity.event.sourcing.core.bootstrap.testapps.ns3.AppEventSourcingEnabledWithCustomPackages;
+import uk.co.codelity.event.sourcing.core.bootstrap.testcontexts.autoconf.AppEventSourcingEnabled;
+import uk.co.codelity.event.sourcing.core.bootstrap.testcontexts.autoconf.Event1;
+import uk.co.codelity.event.sourcing.core.bootstrap.testcontexts.autoconf.Event2;
+import uk.co.codelity.event.sourcing.core.bootstrap.testcontexts.autoconf.InvalidEvent;
+import uk.co.codelity.event.sourcing.core.bootstrap.testcontexts.autoconf.TestAggregate;
+import uk.co.codelity.event.sourcing.core.bootstrap.testcontexts.autoconf.TestEventListener;
+import uk.co.codelity.event.sourcing.core.bootstrap.testcontexts.noconfig.App;
 import uk.co.codelity.event.sourcing.core.context.EventSourcingContext;
+import uk.co.codelity.event.sourcing.core.exceptions.BootstrapException;
 import uk.co.codelity.event.sourcing.core.scanner.AggregateEventHandlerScanner;
 import uk.co.codelity.event.sourcing.core.scanner.EventHandlerScanner;
 import uk.co.codelity.event.sourcing.core.scanner.EventScanner;
+import uk.co.codelity.event.sourcing.core.utils.HandlerLambdaFactory;
+import uk.co.codelity.event.sourcing.core.utils.reflection.ReflectionUtility;
 
 import java.lang.reflect.Method;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -34,25 +41,17 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BootstrapperTest {
-    public static final String CUSTOM_EVENTS_PKG = "com.events";
-    public static final String CUSTOM_EVENT_HANDLER_PKG = "com.event.handlers";
-    public static final String CUSTOM_AGGREGATE_EVENT_HANDLER_PKG = "com.aggregate.event.handlers";
 
     Class<?> event1 = Event1.class;
     Class<?> event2 = Event2.class;
+    Class<?> invalidEvent = InvalidEvent.class;
 
-    @Mock
     Method eventHandler1;
-
-    @Mock
     Method eventHandler2;
-
-    @Mock
     Method aggregateEventHandler1;
-
-    @Mock
     Method aggregateEventHandler2;
-
+    Method multiParamsInvalidAggregateEventHandler;
+    Method nonEventArgInvalidAggregateEventHandler;
 
     @Mock
     EventScanner eventScanner;
@@ -64,18 +63,24 @@ class BootstrapperTest {
     AggregateEventHandlerScanner aggregateEventHandlerScanner;
 
     @Captor
-    ArgumentCaptor<String[]> packagesCaptor;
+    ArgumentCaptor<String> appPackageCaptor;
 
     @InjectMocks
     Bootstrapper bootstrapper;
 
+    @BeforeEach
+    void setUp() throws NoSuchMethodException {
+        eventHandler1 = TestEventListener.class.getMethod("handleEvent1", Event1.class);
+        eventHandler2 = TestEventListener.class.getMethod("handleEvent2", Event2.class);
+        aggregateEventHandler1  = TestAggregate.class.getMethod("handleEvent1", Event1.class);
+        aggregateEventHandler2  = TestAggregate.class.getMethod("handleEvent2", Event2.class);
+        multiParamsInvalidAggregateEventHandler  = TestAggregate.class.getMethod("invalidHandlerMultiParams", Event1.class, Integer.class);
+        nonEventArgInvalidAggregateEventHandler = TestAggregate.class.getMethod("invalidHandlerNonEventArg", Integer.class);
+    }
+
     @Test
     void shouldNotScanWhenEventSourcingNotEnabled() throws Exception {
-        EventSourcingContext eventSourcingContext = bootstrapper.initContext(App.class.getPackageName());
-
-        assertThat(eventSourcingContext.getEventClasses(), is(notNullValue()));
-        assertThat(eventSourcingContext.getEventHandlerMethods(), is(notNullValue()));
-        assertThat(eventSourcingContext.getAggregateEventHandlerMethods(), is(notNullValue()));
+        bootstrapper.initContext(App.class.getPackageName());
 
         verify(eventScanner, never()).scanForEvents(any());
         verify(eventHandlerScanner, never()).scanForEventHandlers(any());
@@ -97,42 +102,103 @@ class BootstrapperTest {
 
         EventSourcingContext eventSourcingContext = bootstrapper.initContext(appPackage);
 
-        assertThat(eventSourcingContext.getEventClasses(), is(List.of(event1, event2)));
+        assertThat(eventSourcingContext.getEventType("Event-1"), is(event1));
+        assertThat(eventSourcingContext.getEventType("Event-2"), is(event2));
         assertThat(eventSourcingContext.getEventHandlerMethods(), is(List.of(eventHandler1, eventHandler2)));
-        assertThat(eventSourcingContext.getAggregateEventHandlerMethods(), is(List.of(aggregateEventHandler1, aggregateEventHandler2)));
 
-        verify(eventScanner, times(1)).scanForEvents(packagesCaptor.capture());
-        assertThat(packagesCaptor.getValue(), is(new String[]{ appPackage }));
+        verify(eventScanner, times(1)).scanForEvents(appPackageCaptor.capture());
+        assertThat(appPackageCaptor.getValue(), is(appPackage ));
 
-        verify(eventHandlerScanner, times(1)).scanForEventHandlers(packagesCaptor.capture());
-        assertThat(packagesCaptor.getValue(), is(new String[]{ appPackage }));
+        verify(eventHandlerScanner, times(1)).scanForEventHandlers(appPackageCaptor.capture());
+        assertThat(appPackageCaptor.getValue(), is(appPackage));
 
-        verify(aggregateEventHandlerScanner, times(1)).scanForAggregateEventHandlers(packagesCaptor.capture());
-        assertThat(packagesCaptor.getValue(), is(new String[]{ appPackage }));
+        verify(aggregateEventHandlerScanner, times(1)).scanForAggregateEventHandlers(appPackageCaptor.capture());
+        assertThat(appPackageCaptor.getValue(), is(appPackage));
     }
-
 
     @Test
-    void shouldScanCustomPackagesWhenEventSourcingEnabled() throws Exception {
-        bootstrapper.initContext(AppEventSourcingEnabledWithCustomPackages.class.getPackageName());
+    void shouldThrowBootstrapExceptionWhenInvalidAggregateEventHandlerFound() throws Exception {
+        String appPackage = AppEventSourcingEnabled.class.getPackageName();
 
-        verify(eventScanner, times(1)).scanForEvents(packagesCaptor.capture());
-        assertThat(packagesCaptor.getValue(), is(new String[]{ CUSTOM_EVENTS_PKG }));
+        when(eventScanner.scanForEvents(any()))
+                .thenReturn(List.of(event1));
 
-        verify(eventHandlerScanner, times(1)).scanForEventHandlers(packagesCaptor.capture());
-        assertThat(packagesCaptor.getValue(), is(new String[]{ CUSTOM_EVENT_HANDLER_PKG }));
+        when(aggregateEventHandlerScanner.scanForAggregateEventHandlers(any()))
+                .thenReturn(List.of(multiParamsInvalidAggregateEventHandler));
 
-        verify(aggregateEventHandlerScanner, times(1)).scanForAggregateEventHandlers(packagesCaptor.capture());
-        assertThat(packagesCaptor.getValue(), is(new String[]{ CUSTOM_AGGREGATE_EVENT_HANDLER_PKG }));
+        assertThrows(BootstrapException.class, () -> bootstrapper.initContext(appPackage));
     }
 
-    @Event(name="Event-1")
-    static class Event1 {
+    @Test
+    void shouldThrowBootstrapExceptionWhenNonEventArgAggregateEventHandlerFound() throws Exception {
+        String appPackage = AppEventSourcingEnabled.class.getPackageName();
 
+        when(eventScanner.scanForEvents(any()))
+                .thenReturn(List.of(event1));
+
+        when(aggregateEventHandlerScanner.scanForAggregateEventHandlers(any()))
+                .thenReturn(List.of(nonEventArgInvalidAggregateEventHandler));
+
+        assertThrows(BootstrapException.class, () -> bootstrapper.initContext(appPackage));
     }
 
-    @Event(name="Event-2")
-    static class Event2 {
+    @Test
+    void shouldThrowBootstrapExceptionWhenAggregateEventHandlerProxyThrowsError() throws Exception {
+        try(MockedStatic<HandlerLambdaFactory> factoryMockedStatic = Mockito.mockStatic(HandlerLambdaFactory.class)) {
+            factoryMockedStatic.when(()->HandlerLambdaFactory.createHandlerLambda(eq(TestAggregate.class), any(), any()))
+                    .thenThrow(new Exception("An error occurred."));
 
+            String appPackage = AppEventSourcingEnabled.class.getPackageName();
+
+            when(eventScanner.scanForEvents(any()))
+                    .thenReturn(List.of(event1));
+
+            when(aggregateEventHandlerScanner.scanForAggregateEventHandlers(any()))
+                    .thenReturn(List.of(aggregateEventHandler1));
+
+            assertThrows(BootstrapException.class, () -> bootstrapper.initContext(appPackage));
+        }
+    }
+
+    @Test
+    void shouldThrowBootstrapExceptionWhenInvalidEventFound() throws Exception {
+        String appPackage = AppEventSourcingEnabled.class.getPackageName();
+
+        when(eventScanner.scanForEvents(any()))
+                .thenReturn(List.of(invalidEvent));
+
+        assertThrows(BootstrapException.class, () -> bootstrapper.initContext(appPackage));
+    }
+
+    @Test
+    void shouldThrowBootstrapExceptionWhenEventSourcingEnabledReadError() throws Exception {
+        try(MockedStatic<ReflectionUtility> factoryMockedStatic = Mockito.mockStatic(ReflectionUtility.class)) {
+            factoryMockedStatic.when(()->ReflectionUtility.getClassesWithAnnotation(any(), eq(EventSourcingEnabled.class)))
+                    .thenThrow(new ClassNotFoundException("An error occurred."));
+
+            String appPackage = AppEventSourcingEnabled.class.getPackageName();
+            assertThrows(BootstrapException.class, () -> bootstrapper.initContext(appPackage));
+        }
+    }
+
+    @Test
+    void shouldThrowBootstrapExceptionWhenEventScannerThrowsException() throws Exception {
+        when(eventScanner.scanForEvents(any())).thenThrow(new ClassNotFoundException("An error occurred."));
+        String appPackage = AppEventSourcingEnabled.class.getPackageName();
+        assertThrows(BootstrapException.class, () -> bootstrapper.initContext(appPackage));
+    }
+
+    @Test
+    void shouldThrowBootstrapExceptionWhenEventHandlerScannerThrowsException() throws Exception {
+        when(eventHandlerScanner.scanForEventHandlers(any())).thenThrow(new ClassNotFoundException("An error occurred."));
+        String appPackage = AppEventSourcingEnabled.class.getPackageName();
+        assertThrows(BootstrapException.class, () -> bootstrapper.initContext(appPackage));
+    }
+
+    @Test
+    void shouldThrowBootstrapExceptionWhenAggregateScannerThrowsException() throws Exception {
+        when(aggregateEventHandlerScanner.scanForAggregateEventHandlers(any())).thenThrow(new ClassNotFoundException("An error occurred."));
+        String appPackage = AppEventSourcingEnabled.class.getPackageName();
+        assertThrows(BootstrapException.class, () -> bootstrapper.initContext(appPackage));
     }
 }

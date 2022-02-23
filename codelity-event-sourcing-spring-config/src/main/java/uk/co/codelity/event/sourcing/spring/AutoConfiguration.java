@@ -1,5 +1,6 @@
 package uk.co.codelity.event.sourcing.spring;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -8,11 +9,15 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import uk.co.codelity.event.sourcing.common.EventStore;
 import uk.co.codelity.event.sourcing.core.bootstrap.Bootstrapper;
 import uk.co.codelity.event.sourcing.core.context.EventSourcingContext;
+import uk.co.codelity.event.sourcing.core.exceptions.BootstrapException;
 import uk.co.codelity.event.sourcing.core.scanner.AggregateEventHandlerScanner;
 import uk.co.codelity.event.sourcing.core.scanner.EventHandlerScanner;
 import uk.co.codelity.event.sourcing.core.scanner.EventScanner;
+import uk.co.codelity.event.sourcing.core.service.AggregateService;
+import uk.co.codelity.event.sourcing.core.utils.ObjectFactory;
 
 import javax.annotation.PostConstruct;
 import java.util.Map;
@@ -29,8 +34,21 @@ public class AutoConfiguration {
 
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-    public EventSourcingContext eventHandlingContext(ApplicationContext applicationContext, Bootstrapper bootstrapper) throws Exception {
+    public EventSourcingContext eventHandlingContext(ApplicationContext applicationContext, Bootstrapper bootstrapper) throws BootstrapException {
         return bootstrapper.initContext(findApplicationPackageName(applicationContext));
+    }
+
+    @Bean
+    public AggregateService aggregateService(EventStore eventStore,
+                                             EventSourcingContext eventSourcingContext,
+                                             ObjectFactory objectFactory,
+                                             ObjectMapper objectMapper){
+        return new AggregateService(eventStore, eventSourcingContext, objectFactory, objectMapper);
+    }
+
+    @Bean
+    public ObjectFactory objectFactory(ApplicationContext applicationContext) {
+        return new SpringObjectFactory(applicationContext);
     }
 
     @PostConstruct

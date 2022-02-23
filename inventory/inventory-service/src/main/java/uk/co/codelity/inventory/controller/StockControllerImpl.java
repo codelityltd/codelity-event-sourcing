@@ -3,6 +3,8 @@ package uk.co.codelity.inventory.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+import uk.co.codelity.event.sourcing.common.exceptions.EventPersistenceException;
+import uk.co.codelity.event.sourcing.core.exceptions.AggregateLoadException;
 import uk.co.codelity.inventory.api.contracts.DispatchRequest;
 import uk.co.codelity.inventory.api.contracts.ReservationRequest;
 import uk.co.codelity.inventory.api.contracts.SupplyRequest;
@@ -23,8 +25,12 @@ public class StockControllerImpl implements StockController {
 
     @Override
     public ResponseEntity<Void> supply(UUID productId, SupplyRequest request) {
-        stockService.supply(productId, request.getQuantity());
-        return ResponseEntity.accepted().build();
+        try {
+            stockService.supply(productId, request.getQuantity());
+            return ResponseEntity.accepted().build();
+        } catch (AggregateLoadException | EventPersistenceException e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     @Override

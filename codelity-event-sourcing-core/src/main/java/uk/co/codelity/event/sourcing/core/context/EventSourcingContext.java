@@ -1,43 +1,64 @@
 package uk.co.codelity.event.sourcing.core.context;
 
+import uk.co.codelity.event.sourcing.common.EventHandlerRegistry;
+import uk.co.codelity.event.sourcing.core.exceptions.AggregateEventHandlerNotFoundException;
+import uk.co.codelity.event.sourcing.core.exceptions.EventNotFoundException;
+
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
+import java.util.function.BiConsumer;
 
-public class EventSourcingContext {
-    private final Collection<Class<?>> eventClasses;
+public class EventSourcingContext implements EventHandlerRegistry {
+    private final Map<String, Class<?>> eventNameAndTypeMapping;
     private final Collection<Method> eventHandlerMethods;
-    private final Collection<Method> aggregateEventHandlerMethods;
+    private final Map<String, BiConsumer<?, ?>> aggregateEventHandlers;
 
-    private EventSourcingContext(Collection<Class<?>> eventClasses, Collection<Method> eventHandlerMethods, Collection<Method> aggregateEventHandlerMethods){
-        this.eventClasses = eventClasses;
+    private EventSourcingContext(Map<String, Class<?>> eventNameAndTypeMapping, Collection<Method> eventHandlerMethods, Map<String, BiConsumer<?, ?>> aggregateEventHandlers){
+        this.eventNameAndTypeMapping = eventNameAndTypeMapping;
         this.eventHandlerMethods = eventHandlerMethods;
-        this.aggregateEventHandlerMethods = aggregateEventHandlerMethods;
-    }
-
-    public Collection<Class<?>> getEventClasses() {
-        return eventClasses;
+        this.aggregateEventHandlers = aggregateEventHandlers;
     }
 
     public Collection<Method> getEventHandlerMethods() {
         return eventHandlerMethods;
     }
 
-    public Collection<Method> getAggregateEventHandlerMethods() {
-        return aggregateEventHandlerMethods;
-    }
-
     public static EventSourcingContextBuilder builder() {
         return new EventSourcingContextBuilder();
     }
 
-    public static class EventSourcingContextBuilder {
-        private Collection<Class<?>> eventClasses = Collections.emptySet();
-        private Collection<Method> eventHandlerMethods = Collections.emptySet();
-        private Collection<Method> aggregateEventHandlerMethods = Collections.emptySet();
+    public Class<?> getEventType(String eventName) throws EventNotFoundException {
+        if (!this.eventNameAndTypeMapping.containsKey(eventName)) {
+            throw new EventNotFoundException(eventName);
+        } else {
+            return this.eventNameAndTypeMapping.get(eventName);
+        }
+    }
 
-        public EventSourcingContextBuilder withEvents(Collection<Class<?>> eventClasses) {
-            this.eventClasses = eventClasses;
+
+    @SuppressWarnings("java:S3740")
+    public BiConsumer getEventHandler(String eventName) throws AggregateEventHandlerNotFoundException {
+        if (!this.aggregateEventHandlers.containsKey(eventName)) {
+            throw new AggregateEventHandlerNotFoundException(eventName);
+        } else {
+            return this.aggregateEventHandlers.get(eventName);
+        }
+    }
+
+    @Override
+    public Collection<String> getHandlersByEventName(String s) {
+        return Collections.emptySet();
+    }
+
+    public static class EventSourcingContextBuilder {
+        private Map<String, Class<?>> eventNameAndTypeMapping = Collections.emptyMap();
+        private Collection<Method> eventHandlerMethods = Collections.emptySet();
+        private Map<String, BiConsumer<?, ?>> aggregateEventHandlers = Collections.emptyMap();
+
+        public EventSourcingContextBuilder withEvents(Map<String, Class<?>> eventNameAndTypeMapping) {
+            this.eventNameAndTypeMapping = eventNameAndTypeMapping;
             return this;
         }
 
@@ -46,13 +67,13 @@ public class EventSourcingContext {
             return this;
         }
 
-        public EventSourcingContextBuilder withAggregateEventHandlers(Collection<Method> aggregateEventHandlerMethods) {
-            this.aggregateEventHandlerMethods = aggregateEventHandlerMethods;
+        public EventSourcingContextBuilder withAggregateEventHandlers(Map<String, BiConsumer<?, ?>> aggregateEventHandlers) {
+            this.aggregateEventHandlers = aggregateEventHandlers;
             return this;
         }
 
         public EventSourcingContext build() {
-            return new EventSourcingContext(eventClasses, eventHandlerMethods, aggregateEventHandlerMethods);
+            return new EventSourcingContext(eventNameAndTypeMapping, eventHandlerMethods, aggregateEventHandlers);
         }
     }
 }
