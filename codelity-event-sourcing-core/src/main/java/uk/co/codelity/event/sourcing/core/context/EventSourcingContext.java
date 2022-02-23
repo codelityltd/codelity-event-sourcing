@@ -37,7 +37,9 @@ public class EventSourcingContext implements EventHandlerRegistry {
         }
     }
 
-    public BiConsumer<?, ?> getEventHandler(String eventName) throws AggregateEventHandlerNotFoundException {
+
+    @SuppressWarnings("java:S3740")
+    public BiConsumer getEventHandler(String eventName) throws AggregateEventHandlerNotFoundException {
         if (!this.aggregateEventHandlers.containsKey(eventName)) {
             throw new AggregateEventHandlerNotFoundException(eventName);
         } else {

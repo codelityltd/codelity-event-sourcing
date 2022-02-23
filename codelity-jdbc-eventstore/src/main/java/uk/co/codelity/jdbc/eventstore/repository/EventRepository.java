@@ -15,7 +15,6 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.util.List;
-import java.util.Optional;
 
 import static java.util.Objects.isNull;
 import static java.util.Optional.ofNullable;

@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.codelity.event.sourcing.common.annotation.EventHandler;
 import uk.co.codelity.event.sourcing.common.annotation.EventHandlerScan;
-import uk.co.codelity.event.sourcing.core.bootstrap.Bootstrapper;
 import uk.co.codelity.event.sourcing.core.utils.reflection.ReflectionUtility;
 
 import java.io.IOException;

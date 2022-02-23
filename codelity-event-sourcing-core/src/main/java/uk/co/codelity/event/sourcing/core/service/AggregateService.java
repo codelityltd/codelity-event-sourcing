@@ -35,7 +35,7 @@ public class AggregateService {
 
             for (EventInfo event: events) {
                 final Class<?> eventType = eventSourcingContext.getEventType(event.name);
-                final BiConsumer<T, Object> eventHandler = (BiConsumer<T, Object>) eventSourcingContext.getEventHandler(event.name);
+                final BiConsumer<T, Object> eventHandler = eventSourcingContext.getEventHandler(event.name);
                 final Object obj = objectMapper.readValue(event.payload, eventType);
                 eventHandler.accept(aggregate, obj);
             }

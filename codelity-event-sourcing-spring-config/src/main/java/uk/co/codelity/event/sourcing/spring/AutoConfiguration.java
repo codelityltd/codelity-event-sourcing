@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Scope;
 import uk.co.codelity.event.sourcing.common.EventStore;
 import uk.co.codelity.event.sourcing.core.bootstrap.Bootstrapper;
 import uk.co.codelity.event.sourcing.core.context.EventSourcingContext;
+import uk.co.codelity.event.sourcing.core.exceptions.BootstrapException;
 import uk.co.codelity.event.sourcing.core.scanner.AggregateEventHandlerScanner;
 import uk.co.codelity.event.sourcing.core.scanner.EventHandlerScanner;
 import uk.co.codelity.event.sourcing.core.scanner.EventScanner;
@@ -33,7 +34,7 @@ public class AutoConfiguration {
 
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-    public EventSourcingContext eventHandlingContext(ApplicationContext applicationContext, Bootstrapper bootstrapper) throws Exception {
+    public EventSourcingContext eventHandlingContext(ApplicationContext applicationContext, Bootstrapper bootstrapper) throws BootstrapException {
         return bootstrapper.initContext(findApplicationPackageName(applicationContext));
     }
 

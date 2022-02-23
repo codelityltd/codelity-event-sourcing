@@ -70,7 +70,7 @@ class AggregateServiceTest {
 
         TestAggregate actual = aggregateService.load(streamId, TestAggregate.class);
         assertThat(actual, is(aggregate));
-        verify(aggregate, times(1)).handleEvent(eq(event));
+        verify(aggregate, times(1)).handleEvent(event);
     }
 
     static class TestAggregate {
