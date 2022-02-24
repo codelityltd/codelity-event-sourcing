@@ -1,5 +1,6 @@
 package uk.co.codelity.jdbc.eventstore.mappers;
 
+import uk.co.codelity.jdbc.eventstore.entity.Event;
 import uk.co.codelity.jdbc.eventstore.entity.EventDelivery;
 import uk.co.codelity.jdbc.eventstore.exception.MapperException;
 
@@ -8,6 +9,8 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import static java.util.Objects.nonNull;
+import static uk.co.codelity.jdbc.eventstore.repository.utils.JdbcUtils.getInteger;
 import static uk.co.codelity.jdbc.eventstore.repository.utils.JdbcUtils.toLocalDateTime;
 
 public class EventDeliveryMapper {
@@ -26,6 +29,11 @@ public class EventDeliveryMapper {
             LocalDateTime pickedUpTime = toLocalDateTime(resultSet.getTimestamp("picked_up_time"));
             String handlerCode = resultSet.getString("handler_code");
 
+            Event event = null;
+            if (nonNull(getInteger(resultSet, "position"))) {
+                event = EventMapper.map(resultSet);
+            }
+
             return new EventDelivery(
                 id,
                 streamId,
@@ -35,7 +43,8 @@ public class EventDeliveryMapper {
                 retryCount,
                 pickedUpBy,
                 pickedUpTime,
-                handlerCode
+                handlerCode,
+                event
             );
 
         } catch (SQLException ex) {

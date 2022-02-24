@@ -13,6 +13,7 @@ public class EventDelivery {
     public final UUID pickedUpBy;
     public final LocalDateTime pickedUpTime;
     public final String handlerCode;
+    public final Event event;
 
     public EventDelivery(Long id, String streamId, Integer deliveryOrder, Long eventId, Integer status, Integer retryCount, UUID pickedUpBy, LocalDateTime pickedUpTime, String handlerCode) {
         this.id = id;
@@ -24,5 +25,19 @@ public class EventDelivery {
         this.pickedUpBy = pickedUpBy;
         this.pickedUpTime = pickedUpTime;
         this.handlerCode = handlerCode;
+        this.event = null;
+    }
+
+    public EventDelivery(Long id, String streamId, Integer deliveryOrder, Long eventId, Integer status, Integer retryCount, UUID pickedUpBy, LocalDateTime pickedUpTime, String handlerCode, Event event) {
+        this.id = id;
+        this.streamId = streamId;
+        this.deliveryOrder = deliveryOrder;
+        this.eventId = eventId;
+        this.status = status;
+        this.retryCount = retryCount;
+        this.pickedUpBy = pickedUpBy;
+        this.pickedUpTime = pickedUpTime;
+        this.handlerCode = handlerCode;
+        this.event = event;
     }
 }
