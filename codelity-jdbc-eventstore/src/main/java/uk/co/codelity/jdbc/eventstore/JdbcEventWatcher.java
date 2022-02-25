@@ -10,10 +10,13 @@ import uk.co.codelity.jdbc.eventstore.entity.EventDelivery;
 import uk.co.codelity.jdbc.eventstore.repository.EventDeliveryRepository;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -24,6 +27,8 @@ public class JdbcEventWatcher {
     private final EventDeliveryRepository eventDeliveryRepository;
     private final JdbcEventWatcherConfig config;
     private final EventHandlerExecutorService eventHandlerExecutorService;
+
+    private ScheduleManager scheduleManager;
 
     public JdbcEventWatcher(final EventDeliveryRepository eventDeliveryRepository, final EventHandlerExecutorService eventHandlerExecutorService, final JdbcEventWatcherConfig config) {
         this.eventDeliveryRepository = eventDeliveryRepository;
@@ -38,11 +43,75 @@ public class JdbcEventWatcher {
                 .mapToObj(n -> new Worker())
                 .collect(Collectors.toUnmodifiableList());
 
-        workers.forEach(worker -> scheduledExecutorService.scheduleAtFixedRate(
-                        worker,
-                        0,
-                        100,
-                        TimeUnit.MILLISECONDS));
+        scheduleManager = new ScheduleManager(scheduledExecutorService, workers);
+        scheduleManager.start();
+    }
+
+    public void stop() {
+        scheduleManager.stop();
+    }
+
+    class ScheduleManager implements Runnable {
+        private ScheduledFuture<?> managerScheduledFuture;
+        private ScheduledExecutorService scheduledExecutorService;
+        private List<Worker> workers;
+        private List<ScheduledFuture<?>> scheduledFutures;
+
+        public ScheduleManager(ScheduledExecutorService scheduledExecutorService, List<Worker> workers) {
+            this.scheduledExecutorService = scheduledExecutorService;
+            this.workers = workers;
+            this.scheduledFutures = new ArrayList<>();
+        }
+
+        public void start() {
+            managerScheduledFuture = Executors.newSingleThreadScheduledExecutor()
+                    .scheduleAtFixedRate(this::run,
+                            0,
+                            5,
+                            TimeUnit.MINUTES);
+        }
+
+        public void stop() {
+            managerScheduledFuture.cancel(false);
+            try {
+                cancelTasks();
+            } catch (ExecutionException e) {
+                logger.error(e.getMessage(), e);
+            } catch (InterruptedException e) {
+                logger.error(e.getMessage(), e);
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        @Override
+        public void run() {
+            try {
+                cancelTasks();
+
+                for (Worker worker : workers) {
+                    scheduledFutures.add(scheduledExecutorService.scheduleAtFixedRate(
+                            worker,
+                            0,
+                            200,
+                            TimeUnit.MILLISECONDS));
+                }
+            } catch (InterruptedException ex) {
+               logger.error(ex.getMessage(), ex);
+               Thread.currentThread().interrupt();
+            } catch (Exception ex) {
+                logger.error(ex.getMessage(), ex);
+            }
+
+        }
+
+        private void cancelTasks() throws ExecutionException, InterruptedException {
+            for (ScheduledFuture<?> scheduledFuture : scheduledFutures) {
+                scheduledFuture.cancel(false);
+                scheduledFuture.get();
+            }
+
+            scheduledFutures.clear();
+        }
     }
 
     class Worker implements Runnable {
