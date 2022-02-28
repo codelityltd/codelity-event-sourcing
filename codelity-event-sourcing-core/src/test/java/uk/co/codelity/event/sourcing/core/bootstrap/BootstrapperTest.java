@@ -23,6 +23,7 @@ import uk.co.codelity.event.sourcing.core.exceptions.BootstrapException;
 import uk.co.codelity.event.sourcing.core.scanner.AggregateEventHandlerScanner;
 import uk.co.codelity.event.sourcing.core.scanner.EventHandlerScanner;
 import uk.co.codelity.event.sourcing.core.scanner.EventScanner;
+import uk.co.codelity.event.sourcing.core.utils.EventHandlerCode;
 import uk.co.codelity.event.sourcing.core.utils.HandlerLambdaFactory;
 import uk.co.codelity.event.sourcing.core.utils.reflection.ReflectionUtility;
 
@@ -30,6 +31,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -52,6 +54,8 @@ class BootstrapperTest {
     Method aggregateEventHandler2;
     Method multiParamsInvalidAggregateEventHandler;
     Method nonEventArgInvalidAggregateEventHandler;
+    String handlerCode1;
+    String handlerCode2;
 
     @Mock
     EventScanner eventScanner;
@@ -76,6 +80,8 @@ class BootstrapperTest {
         aggregateEventHandler2  = TestAggregate.class.getMethod("handleEvent2", Event2.class);
         multiParamsInvalidAggregateEventHandler  = TestAggregate.class.getMethod("invalidHandlerMultiParams", Event1.class, Integer.class);
         nonEventArgInvalidAggregateEventHandler = TestAggregate.class.getMethod("invalidHandlerNonEventArg", Integer.class);
+        handlerCode1 = EventHandlerCode.generate(eventHandler1);
+        handlerCode2 = EventHandlerCode.generate(eventHandler2);
     }
 
     @Test
@@ -104,7 +110,8 @@ class BootstrapperTest {
 
         assertThat(eventSourcingContext.getEventType("Event-1"), is(event1));
         assertThat(eventSourcingContext.getEventType("Event-2"), is(event2));
-        assertThat(eventSourcingContext.getEventHandlerMethods(), is(List.of(eventHandler1, eventHandler2)));
+        assertThat(eventSourcingContext.getEventSubscription("Event-1", handlerCode1), is(notNullValue()));
+        assertThat(eventSourcingContext.getEventSubscription("Event-2", handlerCode2), is(notNullValue()));
 
         verify(eventScanner, times(1)).scanForEvents(appPackageCaptor.capture());
         assertThat(appPackageCaptor.getValue(), is(appPackage ));

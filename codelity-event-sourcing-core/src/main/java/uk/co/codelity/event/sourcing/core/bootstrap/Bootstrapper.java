@@ -4,18 +4,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.codelity.event.sourcing.common.annotation.AggregateEventHandler;
 import uk.co.codelity.event.sourcing.common.annotation.Event;
+import uk.co.codelity.event.sourcing.common.annotation.EventHandler;
 import uk.co.codelity.event.sourcing.common.annotation.EventSourcingEnabled;
 import uk.co.codelity.event.sourcing.core.context.EventSourcingContext;
+import uk.co.codelity.event.sourcing.core.context.EventSubscription;
 import uk.co.codelity.event.sourcing.core.exceptions.BootstrapException;
 import uk.co.codelity.event.sourcing.core.scanner.AggregateEventHandlerScanner;
 import uk.co.codelity.event.sourcing.core.scanner.EventHandlerScanner;
 import uk.co.codelity.event.sourcing.core.scanner.EventScanner;
+import uk.co.codelity.event.sourcing.core.utils.EventHandlerCode;
 import uk.co.codelity.event.sourcing.core.utils.HandlerLambdaFactory;
 import uk.co.codelity.event.sourcing.core.utils.reflection.ReflectionUtility;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -52,13 +56,42 @@ public class Bootstrapper {
 
         Map<String, Class<?>> eventNameAndTypeMapping = buildEventNameAndTypeMapping(eventClasses);
         Map<String, BiConsumer<?, ?>> aggregateEventHandlers = buildAggregateEventHandlers(aggregateEventHandlerMethods);
-
+        Map<String, Map<String, EventSubscription>> eventHandlers = buildEventHandlers(eventHandlerMethods);
 
         return EventSourcingContext.builder()
                 .withEvents(eventNameAndTypeMapping)
-                .withEventHandlers(eventHandlerMethods)
+                .withEventHandlers(eventHandlers)
                 .withAggregateEventHandlers(aggregateEventHandlers)
                 .build();
+    }
+
+    private Map<String, Map<String, EventSubscription>> buildEventHandlers(Collection<Method> eventHandlerMethods) throws BootstrapException {
+        Map<String, Map<String, EventSubscription>> eventHandlers = new HashMap<>();
+        for (Method method: eventHandlerMethods) {
+            EventHandler eventHandler = method.getAnnotation(EventHandler.class);
+            if (nonNull(eventHandler)) {
+                if (method.getParameterCount() != 1) {
+                    throw new BootstrapException(String.format("Event handler has more than one parameter. class: %s method: %s", method.getDeclaringClass().getName(), method.getName()));
+                }
+
+                Class<?> eventClass = method.getParameterTypes()[0];
+                Event eventAnnotation = eventClass.getAnnotation(Event.class);
+                if (isNull(eventAnnotation)) {
+                    throw new BootstrapException(String.format("Event handler has a parameter which is not annotated with @Event. class: %s method: %s", method.getDeclaringClass().getName(), method.getName()));
+                }
+
+                final String eventHandlerCode = EventHandlerCode.generate(method);
+                eventHandlers.computeIfAbsent(eventAnnotation.name(), key -> new HashMap<>());
+
+                try {
+                    BiConsumer<?, ?> handler = HandlerLambdaFactory.createHandlerLambda(method.getDeclaringClass(), eventClass, method.getName());
+                    eventHandlers.get(eventAnnotation.name()).put(eventHandlerCode, new EventSubscription(eventHandlerCode, method.getDeclaringClass(), handler));
+                } catch (Throwable e) {
+                    throw new BootstrapException("Event handler proxy could not be created.", e);
+                }
+            }
+        }
+        return eventHandlers;
     }
 
     private Map<String, BiConsumer<?, ?>> buildAggregateEventHandlers(Collection<Method> aggregateEventHandlerMethods) throws BootstrapException {

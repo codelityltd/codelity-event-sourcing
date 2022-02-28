@@ -7,6 +7,7 @@ import uk.co.codelity.event.sourcing.common.EventHandlerExecutorService;
 import uk.co.codelity.event.sourcing.common.EventInfo;
 import uk.co.codelity.event.sourcing.common.exceptions.EventHandlerException;
 import uk.co.codelity.event.sourcing.core.context.EventSourcingContext;
+import uk.co.codelity.event.sourcing.core.context.EventSubscription;
 import uk.co.codelity.event.sourcing.core.utils.ObjectFactory;
 
 public class EventHandlerExecutorServiceImpl implements EventHandlerExecutorService {
@@ -24,8 +25,18 @@ public class EventHandlerExecutorServiceImpl implements EventHandlerExecutorServ
         this.objectFactory = objectFactory;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void execute(final EventInfo eventInfo, final String handlerCode) throws EventHandlerException {
-        logger.info("Executing event:" + eventInfo.name + " for handler:" + handlerCode);
+        logger.info("Executing event: {} for handler: {}", eventInfo.name, handlerCode);
+        try {
+            EventSubscription eventSubscription = eventSourcingContext.getEventSubscription(eventInfo.name, handlerCode);
+            Object handlerObject = objectFactory.create(eventSubscription.handlerClass);
+            final Class<?> eventType = eventSourcingContext.getEventType(eventInfo.name);
+            final Object obj = objectMapper.readValue(eventInfo.payload, eventType);
+            eventSubscription.handlerProxy.accept(handlerObject, obj);
+        } catch (Exception e) {
+            throw new EventHandlerException("An error occurred in EventHandler", e);
+        }
     }
 }
