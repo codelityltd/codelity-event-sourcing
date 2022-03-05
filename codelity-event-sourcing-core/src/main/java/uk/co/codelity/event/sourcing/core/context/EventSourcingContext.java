@@ -57,8 +57,12 @@ public class EventSourcingContext implements EventHandlerRegistry {
     }
 
     @Override
-    public Collection<String> getHandlersByEventName(String s) {
-        return Collections.emptySet();
+    public Collection<String> getHandlersByEventName(String eventName) {
+        if (!eventHandlers.containsKey(eventName)) {
+            return Collections.emptyList();
+        }
+
+        return eventHandlers.get(eventName).keySet();
     }
 
     public static class EventSourcingContextBuilder {

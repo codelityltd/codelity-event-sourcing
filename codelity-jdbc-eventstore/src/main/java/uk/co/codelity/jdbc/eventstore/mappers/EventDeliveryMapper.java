@@ -18,6 +18,14 @@ public class EventDeliveryMapper {
     }
 
     public static EventDelivery map(ResultSet resultSet) {
+        return map(resultSet, false);
+    }
+
+    public static EventDelivery mapWithEvent(ResultSet resultSet) {
+        return map(resultSet, true);
+    }
+
+    private static EventDelivery map(ResultSet resultSet, boolean mapEvent) {
         try {
             Long id = resultSet.getLong("delivery_id");
             String streamId = resultSet.getString("stream_id");
@@ -29,26 +37,30 @@ public class EventDeliveryMapper {
             LocalDateTime pickedUpTime = toLocalDateTime(resultSet.getTimestamp("picked_up_time"));
             String handlerCode = resultSet.getString("handler_code");
 
+
             Event event = null;
-            if (nonNull(getInteger(resultSet, "position"))) {
+
+            if (mapEvent) {
                 event = EventMapper.map(resultSet);
             }
 
             return new EventDelivery(
-                id,
-                streamId,
-                deliveryOrder,
-                eventId,
-                status,
-                retryCount,
-                pickedUpBy,
-                pickedUpTime,
-                handlerCode,
-                event
+                    id,
+                    streamId,
+                    deliveryOrder,
+                    eventId,
+                    status,
+                    retryCount,
+                    pickedUpBy,
+                    pickedUpTime,
+                    handlerCode,
+                    event
             );
 
         } catch (SQLException ex) {
             throw new MapperException(ex.getMessage(), ex);
         }
     }
+
+
 }

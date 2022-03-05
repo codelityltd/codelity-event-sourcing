@@ -37,7 +37,7 @@ public class EventDeliveryRepository {
 
             return JdbcQuery.<EventDelivery>query(SELECT_LOGITEMS_PREVIOUSLY_MARKED)
                     .withParams(consumerId)
-                    .withMapper(EventDeliveryMapper::map)
+                    .withMapper(EventDeliveryMapper::mapWithEvent)
                     .execute(connection);
         }
     }
