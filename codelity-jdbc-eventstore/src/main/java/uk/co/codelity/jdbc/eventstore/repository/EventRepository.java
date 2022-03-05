@@ -18,9 +18,9 @@ import java.util.List;
 
 import static java.util.Objects.isNull;
 import static java.util.Optional.ofNullable;
-import static uk.co.codelity.jdbc.eventstore.repository.Sql.INSERT_EVENTLOGDELIVERY_SQL;
-import static uk.co.codelity.jdbc.eventstore.repository.Sql.INSERT_EVENTLOG_SQL;
-import static uk.co.codelity.jdbc.eventstore.repository.Sql.SELECT_STREAM_POSITION_SUMMARY;
+import static uk.co.codelity.jdbc.eventstore.repository.EventRepositorySql.INSERT_EVENTLOGDELIVERY_SQL;
+import static uk.co.codelity.jdbc.eventstore.repository.EventRepositorySql.INSERT_EVENTLOG_SQL;
+import static uk.co.codelity.jdbc.eventstore.repository.EventRepositorySql.SELECT_STREAM_POSITION_SUMMARY;
 import static uk.co.codelity.jdbc.eventstore.repository.utils.JdbcUtils.toTimeStamp;
 
 public class EventRepository {
@@ -37,7 +37,7 @@ public class EventRepository {
 
     public List<Event> findEventsByStreamIdOrderedByPosition(String streamId) throws SQLException, MapperException {
         try (Connection connection = connect()) {
-            return JdbcQuery.<Event>query(Sql.SELECT_EVENTS_BY_STREAMID)
+            return JdbcQuery.<Event>query(EventRepositorySql.SELECT_EVENTS_BY_STREAMID)
                     .withParams(streamId)
                     .withMapper(EventMapper::map)
                     .execute(connection);

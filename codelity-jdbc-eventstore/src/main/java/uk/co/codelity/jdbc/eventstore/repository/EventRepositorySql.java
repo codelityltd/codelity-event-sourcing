@@ -1,6 +1,6 @@
 package uk.co.codelity.jdbc.eventstore.repository;
 
-public class Sql {
+public class EventRepositorySql {
     static final String SELECT_STREAM_POSITION_SUMMARY = "select position, delivery_order, status from event_delivery eld  " +
             "right join event el on el.event_id =eld.event_id  " +
             "where el.stream_id =? order by delivery_order desc limit 1;";
@@ -15,6 +15,6 @@ public class Sql {
 
     static final String SELECT_EVENTS_BY_STREAMID = "select * from event where stream_id=? order by position asc";
 
-    private Sql() {
+    private EventRepositorySql() {
     }
 }

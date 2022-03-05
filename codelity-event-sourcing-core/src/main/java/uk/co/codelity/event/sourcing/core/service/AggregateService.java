@@ -7,7 +7,6 @@ import uk.co.codelity.event.sourcing.core.context.EventSourcingContext;
 import uk.co.codelity.event.sourcing.core.exceptions.AggregateLoadException;
 import uk.co.codelity.event.sourcing.core.utils.ObjectFactory;
 
-import java.lang.reflect.Method;
 import java.util.function.BiConsumer;
 
 public class AggregateService {
@@ -35,7 +34,7 @@ public class AggregateService {
 
             for (EventInfo event: events) {
                 final Class<?> eventType = eventSourcingContext.getEventType(event.name);
-                final BiConsumer<T, Object> eventHandler = eventSourcingContext.getEventHandler(event.name);
+                final BiConsumer<T, Object> eventHandler = eventSourcingContext.getAggregateEventHandler(event.name);
                 final Object obj = objectMapper.readValue(event.payload, eventType);
                 eventHandler.accept(aggregate, obj);
             }

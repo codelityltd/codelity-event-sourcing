@@ -1,5 +1,6 @@
 package uk.co.codelity.jdbc.eventstore.mappers;
 
+import uk.co.codelity.jdbc.eventstore.entity.Event;
 import uk.co.codelity.jdbc.eventstore.entity.EventDelivery;
 import uk.co.codelity.jdbc.eventstore.exception.MapperException;
 
@@ -8,6 +9,8 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import static java.util.Objects.nonNull;
+import static uk.co.codelity.jdbc.eventstore.repository.utils.JdbcUtils.getInteger;
 import static uk.co.codelity.jdbc.eventstore.repository.utils.JdbcUtils.toLocalDateTime;
 
 public class EventDeliveryMapper {
@@ -15,6 +18,14 @@ public class EventDeliveryMapper {
     }
 
     public static EventDelivery map(ResultSet resultSet) {
+        return map(resultSet, false);
+    }
+
+    public static EventDelivery mapWithEvent(ResultSet resultSet) {
+        return map(resultSet, true);
+    }
+
+    private static EventDelivery map(ResultSet resultSet, boolean mapEvent) {
         try {
             Long id = resultSet.getLong("delivery_id");
             String streamId = resultSet.getString("stream_id");
@@ -26,20 +37,30 @@ public class EventDeliveryMapper {
             LocalDateTime pickedUpTime = toLocalDateTime(resultSet.getTimestamp("picked_up_time"));
             String handlerCode = resultSet.getString("handler_code");
 
+
+            Event event = null;
+
+            if (mapEvent) {
+                event = EventMapper.map(resultSet);
+            }
+
             return new EventDelivery(
-                id,
-                streamId,
-                deliveryOrder,
-                eventId,
-                status,
-                retryCount,
-                pickedUpBy,
-                pickedUpTime,
-                handlerCode
+                    id,
+                    streamId,
+                    deliveryOrder,
+                    eventId,
+                    status,
+                    retryCount,
+                    pickedUpBy,
+                    pickedUpTime,
+                    handlerCode,
+                    event
             );
 
         } catch (SQLException ex) {
             throw new MapperException(ex.getMessage(), ex);
         }
     }
+
+
 }

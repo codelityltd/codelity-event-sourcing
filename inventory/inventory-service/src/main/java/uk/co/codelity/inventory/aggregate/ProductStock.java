@@ -26,7 +26,7 @@ public class ProductStock {
 
     @AggregateEventHandler
     public void apply(StockDecreased stockDecreased) {
-
+        stock -= stockDecreased.getQuantity();
     }
 
     @AggregateEventHandler
