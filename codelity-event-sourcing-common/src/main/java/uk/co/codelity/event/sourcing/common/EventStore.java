@@ -13,7 +13,7 @@ public interface EventStore {
      * @param events events to be added to the stream
      * @throws EventPersistenceException
      */
-    void append(String streamId, List<Object> events) throws EventPersistenceException;
+    void append(String streamId, List<Envelope<?>> events) throws EventPersistenceException;
 
     /***
      * Load events from a stream.

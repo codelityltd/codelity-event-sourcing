@@ -57,7 +57,7 @@ public class DeliveryWorker {
             return;
         }
 
-        logger.info("Delivery List count:" + deliveryList.size());
+        logger.info("Delivery List count: {}", deliveryList.size());
 
         for (EventDelivery eventDelivery : deliveryList) {
             DeliveryWork deliveryWork = deliveryWorkFactory.create(eventDelivery, eventHandlerExecutorService, eventDeliveryRepository);

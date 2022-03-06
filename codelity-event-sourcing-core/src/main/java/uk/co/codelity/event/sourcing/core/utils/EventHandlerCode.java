@@ -6,17 +6,14 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class EventHandlerCode {
-    public static String generate(Method method) {
+    private EventHandlerCode() {
+    }
+
+    public static String generate(Method method) throws NoSuchAlgorithmException {
         String subscriber = method.getDeclaringClass().getName() + "::" + method.getName();
-
-        try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            byte[] bytes = md.digest(subscriber.getBytes(StandardCharsets.UTF_8));
-            return encodeHexString(bytes);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        byte[] bytes = md.digest(subscriber.getBytes(StandardCharsets.UTF_8));
+        return encodeHexString(bytes);
     }
 
     private static String encodeHexString(byte[] byteArray) {

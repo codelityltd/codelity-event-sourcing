@@ -18,6 +18,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -50,6 +51,7 @@ class DeliveryWorkerTest {
     @InjectMocks
     DeliveryWorker deliveryWorker;
 
+    @SuppressWarnings("java:S2925")
     @Test
     void shouldDoTwoWorks() throws InterruptedException, SQLException {
         when(eventDeliveryRepository.getEventsToBeDelivered(any(), any(), any(), any()))
@@ -61,9 +63,8 @@ class DeliveryWorkerTest {
         deliveryWorker.start();
         Thread.sleep(200);
         deliveryWorker.stop();
-        Thread.sleep(1000);
-        verify(deliveryWorkFactory, times(2)).create(any(), any(), any());
-        verify(deliveryWork, times(2)).run();
+        verify(deliveryWorkFactory, timeout(1000).times(2)).create(any(), any(), any());
+        verify(deliveryWork, timeout(1000).times(2)).run();
 
     }
 

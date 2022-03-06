@@ -4,7 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import uk.co.codelity.event.sourcing.common.Envelope;
 import uk.co.codelity.event.sourcing.common.EventStore;
+import uk.co.codelity.event.sourcing.common.Metadata;
 import uk.co.codelity.event.sourcing.common.exceptions.EventPersistenceException;
 import uk.co.codelity.event.sourcing.core.exceptions.AggregateLoadException;
 import uk.co.codelity.event.sourcing.core.service.AggregateService;
@@ -26,10 +28,10 @@ public class StockService {
         this.aggregateService = aggregateService;
     }
 
-    public void supply(UUID productId, Integer quantity) throws AggregateLoadException, EventPersistenceException {
+    public void supply(UUID productId, Integer quantity, Metadata metadata) throws AggregateLoadException, EventPersistenceException {
         logger.info("** Supply productId: {} quantity: {}", productId, quantity);
         ProductStock productStock = aggregateService.load(productId.toString(), ProductStock.class);
-        List<Object> events = productStock.supply(quantity);
+        List<Envelope<?>> events = productStock.supply(quantity, metadata);
         eventStore.append(productId.toString(), events);
     }
 }

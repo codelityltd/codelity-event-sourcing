@@ -8,10 +8,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import uk.co.codelity.inventory.api.contracts.DispatchRequest;
 import uk.co.codelity.inventory.api.contracts.ReservationRequest;
@@ -33,7 +35,7 @@ public interface StockController {
                 schema = @Schema(implementation = SupplyRequest.class)) })
     })
     @PostMapping("/products/{productId}/supply")
-    ResponseEntity<Void> supply(@PathVariable("productId") UUID productId, @Valid @RequestBody SupplyRequest request);
+    ResponseEntity<Void> supply(@PathVariable("productId") UUID productId, @Valid @RequestBody SupplyRequest request, @RequestHeader HttpHeaders httpHeaders);
 
 
     @Operation(summary = "Dispatch request for a product")

@@ -9,8 +9,6 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static java.util.Objects.nonNull;
-import static uk.co.codelity.jdbc.eventstore.repository.utils.JdbcUtils.getInteger;
 import static uk.co.codelity.jdbc.eventstore.repository.utils.JdbcUtils.toLocalDateTime;
 
 public class EventDeliveryMapper {

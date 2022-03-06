@@ -2,6 +2,7 @@ package uk.co.codelity.event.sourcing.core.bootstrap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.co.codelity.event.sourcing.common.Envelope;
 import uk.co.codelity.event.sourcing.common.annotation.AggregateEventHandler;
 import uk.co.codelity.event.sourcing.common.annotation.Event;
 import uk.co.codelity.event.sourcing.common.annotation.EventHandler;
@@ -18,8 +19,10 @@ import uk.co.codelity.event.sourcing.core.utils.reflection.ReflectionUtility;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -74,24 +77,65 @@ public class Bootstrapper {
                     throw new BootstrapException(String.format("Event handler has more than one parameter. class: %s method: %s", method.getDeclaringClass().getName(), method.getName()));
                 }
 
-                Class<?> eventClass = method.getParameterTypes()[0];
-                Event eventAnnotation = eventClass.getAnnotation(Event.class);
-                if (isNull(eventAnnotation)) {
-                    throw new BootstrapException(String.format("Event handler has a parameter which is not annotated with @Event. class: %s method: %s", method.getDeclaringClass().getName(), method.getName()));
+                EventHandlerParameterInfo paramInfo = getParameterInfo(method);
+
+                final String eventHandlerCode;
+                try {
+                    eventHandlerCode = EventHandlerCode.generate(method);
+                } catch (NoSuchAlgorithmException e) {
+                    throw new BootstrapException("Event handler code could not be generated!", e);
                 }
 
-                final String eventHandlerCode = EventHandlerCode.generate(method);
-                eventHandlers.computeIfAbsent(eventAnnotation.name(), key -> new HashMap<>());
+                eventHandlers.computeIfAbsent(paramInfo.eventName, key -> new HashMap<>());
 
                 try {
-                    BiConsumer<?, ?> handler = HandlerLambdaFactory.createHandlerLambda(method.getDeclaringClass(), eventClass, method.getName());
-                    eventHandlers.get(eventAnnotation.name()).put(eventHandlerCode, new EventSubscription(eventHandlerCode, method.getDeclaringClass(), handler));
+                    BiConsumer<?, ?> handler = HandlerLambdaFactory.createHandlerLambda(method.getDeclaringClass(), paramInfo.parameterType, method.getName());
+                    eventHandlers.get(paramInfo.eventName).put(eventHandlerCode, new EventSubscription(eventHandlerCode, method.getDeclaringClass(), handler, paramInfo.isEnvelope));
                 } catch (Throwable e) {
                     throw new BootstrapException("Event handler proxy could not be created.", e);
                 }
             }
         }
         return eventHandlers;
+    }
+
+    private EventHandlerParameterInfo getParameterInfo(Method method) throws BootstrapException {
+        Class<?> parameterType = method.getParameterTypes()[0];
+        Event eventAnnotation = parameterType.getAnnotation(Event.class);
+        boolean isEnvelope = false;
+        if (isNull(eventAnnotation)) {
+            ParameterizedType genericType = (ParameterizedType) method.getGenericParameterTypes()[0];
+            parameterType = (Class<?>)genericType.getRawType();
+            if (!genericType.getRawType().equals(Envelope.class)) {
+                throw new BootstrapException("An event handler must have a parameter either Envelop<A Class annotated with Event> or A Class annotated with Event");
+            }
+
+            Type eventType = genericType.getActualTypeArguments()[0];
+            Class<?> eventClass = (Class<?>)eventType;
+            eventAnnotation = eventClass.getAnnotation(Event.class);
+            isEnvelope = true;
+        }
+
+        if (isNull(eventAnnotation)) {
+            throw new BootstrapException(
+                    String.format("Event handler has a parameter which is not annotated with @Event. class: %s method: %s",
+                            method.getDeclaringClass().getName(),
+                            method.getName()));
+        }
+
+        return new EventHandlerParameterInfo(eventAnnotation.name(), parameterType, isEnvelope);
+    }
+
+    class EventHandlerParameterInfo {
+        public final String eventName;
+        public final Class<?> parameterType;
+        public final boolean isEnvelope;
+
+        public EventHandlerParameterInfo(String eventName, Class<?> parameterType, boolean isEnvelope) {
+            this.eventName = eventName;
+            this.parameterType = parameterType;
+            this.isEnvelope = isEnvelope;
+        }
     }
 
     private Map<String, BiConsumer<?, ?>> buildAggregateEventHandlers(Collection<Method> aggregateEventHandlerMethods) throws BootstrapException {

@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.co.codelity.event.sourcing.common.Envelope;
 import uk.co.codelity.event.sourcing.common.annotation.EventSourcingEnabled;
 import uk.co.codelity.event.sourcing.core.bootstrap.testcontexts.autoconf.AppEventSourcingEnabled;
 import uk.co.codelity.event.sourcing.core.bootstrap.testcontexts.autoconf.Event1;
@@ -28,6 +29,7 @@ import uk.co.codelity.event.sourcing.core.utils.HandlerLambdaFactory;
 import uk.co.codelity.event.sourcing.core.utils.reflection.ReflectionUtility;
 
 import java.lang.reflect.Method;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -73,9 +75,9 @@ class BootstrapperTest {
     Bootstrapper bootstrapper;
 
     @BeforeEach
-    void setUp() throws NoSuchMethodException {
+    void setUp() throws NoSuchMethodException, NoSuchAlgorithmException {
         eventHandler1 = TestEventListener.class.getMethod("handleEvent1", Event1.class);
-        eventHandler2 = TestEventListener.class.getMethod("handleEvent2", Event2.class);
+        eventHandler2 = TestEventListener.class.getMethod("handleEvent2", Envelope.class);
         aggregateEventHandler1  = TestAggregate.class.getMethod("handleEvent1", Event1.class);
         aggregateEventHandler2  = TestAggregate.class.getMethod("handleEvent2", Event2.class);
         multiParamsInvalidAggregateEventHandler  = TestAggregate.class.getMethod("invalidHandlerMultiParams", Event1.class, Integer.class);

@@ -3,8 +3,10 @@ package uk.co.codelity.event.sourcing.core.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.co.codelity.event.sourcing.common.Envelope;
 import uk.co.codelity.event.sourcing.common.EventHandlerExecutorService;
 import uk.co.codelity.event.sourcing.common.EventInfo;
+import uk.co.codelity.event.sourcing.common.Metadata;
 import uk.co.codelity.event.sourcing.common.exceptions.EventHandlerException;
 import uk.co.codelity.event.sourcing.core.context.EventSourcingContext;
 import uk.co.codelity.event.sourcing.core.context.EventSubscription;
@@ -32,9 +34,15 @@ public class EventHandlerExecutorServiceImpl implements EventHandlerExecutorServ
         try {
             EventSubscription eventSubscription = eventSourcingContext.getEventSubscription(eventInfo.name, handlerCode);
             Object handlerObject = objectFactory.create(eventSubscription.handlerClass);
-            final Class<?> eventType = eventSourcingContext.getEventType(eventInfo.name);
-            final Object obj = objectMapper.readValue(eventInfo.payload, eventType);
-            eventSubscription.handlerProxy.accept(handlerObject, obj);
+            Class<?> eventType = eventSourcingContext.getEventType(eventInfo.name);
+            if (eventSubscription.envelopeParam) {
+                Metadata metadata = objectMapper.readValue(eventInfo.metadata, Metadata.class);
+                Object obj = objectMapper.readValue(eventInfo.payload, eventType);
+                eventSubscription.handlerProxy.accept(handlerObject, new Envelope<>(metadata, obj));
+            } else {
+                Object obj = objectMapper.readValue(eventInfo.payload, eventType);
+                eventSubscription.handlerProxy.accept(handlerObject, obj);
+            }
         } catch (Exception e) {
             throw new EventHandlerException("An error occurred in EventHandler", e);
         }

@@ -3,6 +3,8 @@ package uk.co.codelity.inventory.aggregate;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import uk.co.codelity.event.sourcing.common.Envelope;
+import uk.co.codelity.event.sourcing.common.Metadata;
 import uk.co.codelity.event.sourcing.common.annotation.AggregateEventHandler;
 import uk.co.codelity.inventory.events.StockDecreased;
 import uk.co.codelity.inventory.events.StockIncreased;
@@ -34,8 +36,8 @@ public class ProductStock {
 
     }
 
-    public List<Object> supply(int quantity) {
-        return List.of(new StockIncreased(quantity));
+    public List<Envelope<?>> supply(int quantity, Metadata metadata) {
+        return List.of(new Envelope<>(metadata, new StockIncreased(quantity)));
     }
 
 }

@@ -32,12 +32,12 @@ public class EventHandlerScanner {
         String packagesAsStr = String.join(",", packageNamesToBeScanned);
         logger.info("ApplicationEventListener is scanning for event handler methods. Packages are being scanned {}", packagesAsStr);
 
-        Set<Method> aggregateEventHandlerMethods = new HashSet<>();
+        Set<Method> eventHandlerMethods = new HashSet<>();
         for (String packageName: packageNamesToBeScanned) {
             Set<Method> methods = ReflectionUtility.getMethodsWithAnnotation(packageName, EventHandler.class);
-            aggregateEventHandlerMethods.addAll(methods);
+            eventHandlerMethods.addAll(methods);
         }
-        return Collections.unmodifiableSet(aggregateEventHandlerMethods);
+        return Collections.unmodifiableSet(eventHandlerMethods);
     }
 
     private String[] eventHandlerPackages(String applicationPackageName)

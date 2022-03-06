@@ -2,6 +2,7 @@ package uk.co.codelity.jdbc.eventstore;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import uk.co.codelity.event.sourcing.common.Envelope;
 import uk.co.codelity.event.sourcing.common.EventHandlerRegistry;
 import uk.co.codelity.event.sourcing.common.EventInfo;
 import uk.co.codelity.event.sourcing.common.EventStore;
@@ -34,13 +35,13 @@ public class JdbcEventStore implements EventStore {
     }
 
     @Override
-    public void append(String streamId, List<Object> events) throws EventPersistenceException {
+    public void append(String streamId, List<Envelope<?>> events) throws EventPersistenceException {
         requireNonNull(streamId);
         requireNonNull(events);
 
         List<Event> eventList = new ArrayList<>();
 
-        for (final Object event : events) {
+        for (final Envelope<?> event : events) {
             eventList.add(buildEventLog(streamId, event));
         }
 
@@ -68,9 +69,9 @@ public class JdbcEventStore implements EventStore {
         return new EventInfo(event.streamId, event.position, event.name, event.metadata, event.payload);
     }
 
-    private Event buildEventLog(final String streamId, final Object event) throws EventPersistenceException {
+    private Event buildEventLog(final String streamId, final Envelope<?> envelope) throws EventPersistenceException {
         try {
-            String eventName = TypeUtils.eventNameOf(event);
+            String eventName = TypeUtils.eventNameOf(envelope.payload);
             Collection<String> handlerCodes = eventHandlerRegistry.getHandlersByEventName(eventName);
 
             return new Event(
@@ -78,15 +79,15 @@ public class JdbcEventStore implements EventStore {
                     streamId,
                     null,
                     eventName,
-                    "",
-                    objectMapper.writeValueAsString(event),
+                    objectMapper.writeValueAsString(envelope.metadata),
+                    objectMapper.writeValueAsString(envelope.payload),
                     LocalDateTime.now(),
                     handlerCodes);
 
 
         } catch (MissingEventAnnotationException |
                 JsonProcessingException e) {
-            throw new EventPersistenceException(String.format("The events could not be published! %s", event), e);
+            throw new EventPersistenceException(String.format("The events could not be published! %s", envelope.payload), e);
         }
     }
 }

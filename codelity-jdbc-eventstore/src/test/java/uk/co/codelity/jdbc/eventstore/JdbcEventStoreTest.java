@@ -9,8 +9,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.co.codelity.event.sourcing.common.Envelope;
 import uk.co.codelity.event.sourcing.common.EventHandlerRegistry;
 import uk.co.codelity.event.sourcing.common.EventInfo;
+import uk.co.codelity.event.sourcing.common.Metadata;
 import uk.co.codelity.event.sourcing.common.exceptions.EventLoadException;
 import uk.co.codelity.event.sourcing.common.exceptions.EventPersistenceException;
 import uk.co.codelity.jdbc.eventstore.entity.Event;
@@ -53,7 +55,7 @@ class JdbcEventStoreTest {
     void shouldAppendEvents() throws EventPersistenceException, SQLException {
         String streamId= UUID.randomUUID().toString();
         when(eventHandlerRegistry.getHandlersByEventName("event1")).thenReturn(List.of("HANDLER1"));
-        jdbcEventStore.append(streamId, List.of(new Event1()));
+        jdbcEventStore.append(streamId, List.of(new Envelope<>(new Metadata(UUID.randomUUID(), "userId"), new Event1())));
         verify(eventRepository, times(1)).saveAll(eq(streamId), eventCaptor.capture());
         assertThat(eventCaptor.getValue().size(), is(1));
         assertThat(eventCaptor.getValue().get(0).name, is("event1"));
@@ -65,7 +67,7 @@ class JdbcEventStoreTest {
         String streamId= UUID.randomUUID().toString();
         when(eventHandlerRegistry.getHandlersByEventName("event1")).thenReturn(List.of("HANDLER1"));
         doThrow(new SQLException()).when(eventRepository).saveAll(any(), any());
-        assertThrows(EventPersistenceException.class, () -> jdbcEventStore.append(streamId, List.of(new Event1())));
+        assertThrows(EventPersistenceException.class, () -> jdbcEventStore.append(streamId, List.of(new Envelope<>(new Metadata(UUID.randomUUID(), "userId"), new Event1()))));
     }
 
     @Test

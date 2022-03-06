@@ -1,6 +1,7 @@
 package uk.co.codelity.inventory.handlers;
 
 import org.springframework.stereotype.Component;
+import uk.co.codelity.event.sourcing.common.Envelope;
 import uk.co.codelity.event.sourcing.common.annotation.EventHandler;
 import uk.co.codelity.inventory.events.StockDecreased;
 import uk.co.codelity.inventory.events.StockIncreased;
@@ -9,7 +10,7 @@ import uk.co.codelity.inventory.events.StockIncreased;
 public class StockEventHandler {
 
     @EventHandler
-    public void stockIncreased(StockIncreased stockIncreased) {
+    public void stockIncreased(Envelope<StockIncreased> stockIncreased) {
         System.out.println(stockIncreased);
     }
 

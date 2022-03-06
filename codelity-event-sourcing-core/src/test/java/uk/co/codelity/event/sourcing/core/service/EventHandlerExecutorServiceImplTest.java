@@ -45,7 +45,7 @@ class EventHandlerExecutorServiceImplTest {
     void shouldExecuteEventHandler() throws EventHandlerException, EventHandlerNotFoundException, ObjectCreationException, JsonProcessingException, EventNotFoundException {
         EventSubscription eventSubscription = new EventSubscription(HANDLER_CODE,
                 TestEventHandler.class,
-                (o1, o2) -> handlerProxy((TestEventHandler) o1, (String) o2));
+                (o1, o2) -> handlerProxy((TestEventHandler) o1, (String) o2), false);
 
         when(objectFactory.create(any())).thenReturn(testEventHandler);
         when(objectMapper.readValue(any(String.class), any(Class.class))).thenReturn(EXAMPLE_PAYLOAD);
