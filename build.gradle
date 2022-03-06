@@ -5,7 +5,9 @@ allprojects {
 
 subprojects {
     apply plugin: 'java-library'
-    apply plugin: 'maven-publish'
+    if (!it.name.startsWith('inventory')) {
+        apply plugin: 'maven-publish'
+    }
 
     repositories {
         mavenLocal()
@@ -24,10 +26,12 @@ subprojects {
         useJUnitPlatform()
     }
 
-    publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                from components.java
+    if (!it.name.startsWith('inventory')) {
+        publishing {
+            publications {
+                mavenJava(MavenPublication) {
+                    from components.java
+                }
             }
         }
     }
