@@ -1,0 +1,9 @@
+plugins {
+    id 'java'
+}
+
+dependencies {
+    implementation "org.springframework.boot:spring-boot-starter-web:${springboot_version}"
+    implementation "org.springdoc:springdoc-openapi-ui:1.6.5"
+    implementation "org.springdoc:springdoc-openapi-data-rest:1.6.5"
+}

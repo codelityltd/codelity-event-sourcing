@@ -23,24 +23,3 @@ subprojects {
         useJUnitPlatform()
     }
 }
-
-project(":inventory-api") {
-    dependencies {
-        implementation "org.springframework.boot:spring-boot-starter-web:${springboot_version}"
-        implementation "org.springdoc:springdoc-openapi-ui:1.6.5"
-        implementation "org.springdoc:springdoc-openapi-data-rest:1.6.5"
-    }
-}
-
-project(":inventory-service") {
-    dependencies {
-        implementation project(":inventory-api")
-        implementation "${group}:codelity-event-sourcing-spring-config:${version}"
-        implementation "${group}:codelity-jdbc-eventstore-spring-config:${version}"
-        implementation 'org.postgresql:postgresql:42.3.3'
-        implementation "org.springframework.boot:spring-boot-starter-web:${springboot_version}"
-        implementation "org.springframework.boot:spring-boot-starter-validation:${springboot_version}"
-        testImplementation "org.springframework.boot:spring-boot-starter-test:${springboot_version}"
-
-    }
-}
