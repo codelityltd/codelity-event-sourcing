@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.co.codelity.event.sourcing.common.exceptions.EventPersistenceException;
 import uk.co.codelity.event.sourcing.core.exceptions.AggregateLoadException;
 import uk.co.codelity.inventory.api.contracts.DispatchRequest;
-import uk.co.codelity.inventory.api.contracts.ReservationRequest;
 import uk.co.codelity.inventory.api.contracts.SupplyRequest;
 import uk.co.codelity.inventory.api.controller.StockController;
 import uk.co.codelity.inventory.service.StockService;
@@ -39,22 +38,12 @@ public class StockControllerImpl implements StockController {
 
 
     @Override
-    public ResponseEntity<Void> dispatch(UUID productId, DispatchRequest request) {
-        return null;
-    }
-
-    @Override
-    public ResponseEntity<Void> reserve(UUID productId, ReservationRequest request) {
-        return null;
-    }
-
-    @Override
-    public ResponseEntity<Void> cancelReservation(UUID productId, Integer reservationId) {
-        return null;
-    }
-
-    @Override
-    public ResponseEntity<Void> completeReservation(UUID productId, Integer reservationId) {
-        return null;
+    public ResponseEntity<Void> dispatch(UUID productId, DispatchRequest request, HttpHeaders httpHeaders) {
+        try {
+            stockService.dispatch(productId, request.getQuantity(), buildMetadata(httpHeaders));
+            return ResponseEntity.accepted().build();
+        } catch (AggregateLoadException | EventPersistenceException e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

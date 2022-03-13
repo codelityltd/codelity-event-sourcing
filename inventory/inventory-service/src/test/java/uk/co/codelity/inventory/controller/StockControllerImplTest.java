@@ -12,12 +12,17 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import uk.co.codelity.inventory.api.contracts.SupplyRequest;
+import uk.co.codelity.inventory.exceptions.OutOfStockException;
 import uk.co.codelity.inventory.service.StockService;
 
 import java.util.UUID;
 
 import static java.util.UUID.randomUUID;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -48,6 +53,29 @@ class StockControllerImplTest {
                         .content(anInvalidSupplyPayload())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldDispatchResponseAccepted() throws Exception {
+        mvc.perform(post("/api/v1/inventory/products/{productId}/dispatch", randomUUID())
+                        .headers(httpHeaders(randomUUID(), "1"))
+                        .content(aValidSupplyPayload())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isAccepted());
+    }
+
+    @Test
+    void shouldReturnOutOfStockResponse() throws Exception {
+        String errorMessage = "Product is out of stock";
+        doThrow(new OutOfStockException(errorMessage))
+                .when(stockService).dispatch(any(), any(), any());
+
+        mvc.perform(post("/api/v1/inventory/products/{productId}/dispatch", randomUUID())
+                        .headers(httpHeaders(randomUUID(), "1"))
+                        .content(aValidSupplyPayload())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.content().string(errorMessage));
     }
 
     private String aValidSupplyPayload() throws JsonProcessingException {

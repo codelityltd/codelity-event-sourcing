@@ -8,3 +8,13 @@ UserId: oktay
 }
 
 ###
+POST http://localhost:8080/api/v1/inventory/products/72032317-6dc2-403a-b7e7-f916f02cf875/dispatch
+Content-Type: application/json
+CorrelationId: f400433e-a2a5-44c5-96e5-ff1f1f745957
+UserId: oktay
+
+{
+  "quantity": 3
+}
+
+###

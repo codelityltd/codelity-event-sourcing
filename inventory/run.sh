@@ -11,4 +11,4 @@ popd || exit
 echo 'Building inventory service'
 ./gradlew :inventory-service:clean :inventory-service:bootJar
 
-docker-compose up -d
+docker-compose up

@@ -8,13 +8,17 @@ import uk.co.codelity.event.sourcing.common.Metadata;
 import uk.co.codelity.event.sourcing.common.annotation.AggregateEventHandler;
 import uk.co.codelity.inventory.events.StockDecreased;
 import uk.co.codelity.inventory.events.StockIncreased;
-import uk.co.codelity.inventory.events.StockReserved;
+import uk.co.codelity.inventory.exceptions.OutOfStockException;
 
 import java.util.List;
+import java.util.UUID;
+
+import static java.util.Objects.isNull;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ProductStock {
+    private UUID productId;
     private int stock;
 
     public ProductStock() {
@@ -23,21 +27,31 @@ public class ProductStock {
 
     @AggregateEventHandler
     public void apply(StockIncreased stockIncreased) {
+        if (isNull(productId)) {
+            productId = stockIncreased.getProductId();
+        }
+
         stock += stockIncreased.getQuantity();
     }
 
     @AggregateEventHandler
     public void apply(StockDecreased stockDecreased) {
+        if (isNull(productId)) {
+            productId = stockDecreased.getProductId();
+        }
+
         stock -= stockDecreased.getQuantity();
     }
 
-    @AggregateEventHandler
-    public void apply(StockReserved stockReserved) {
-
+    public List<Envelope<?>> supply(UUID productId, int quantity, Metadata metadata) {
+        return List.of(new Envelope<>(metadata, new StockIncreased(productId, quantity)));
     }
 
-    public List<Envelope<?>> supply(int quantity, Metadata metadata) {
-        return List.of(new Envelope<>(metadata, new StockIncreased(quantity)));
-    }
+    public List<Envelope<?>> dispatch(UUID productId, Integer quantity, Metadata metadata) {
+        if (stock < quantity) {
+            throw new OutOfStockException("Product is out of stock. ProductId: " + productId);
+        }
 
+        return List.of(new Envelope<>(metadata, new StockDecreased(productId, quantity)));
+    }
 }

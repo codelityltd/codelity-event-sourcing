@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import uk.co.codelity.inventory.api.contracts.DispatchRequest;
-import uk.co.codelity.inventory.api.contracts.ReservationRequest;
 import uk.co.codelity.inventory.api.contracts.SupplyRequest;
 
 import javax.validation.Valid;
@@ -45,31 +44,5 @@ public interface StockController {
                 schema = @Schema(implementation = DispatchRequest.class)) })
     })
     @PostMapping("/products/{productId}/dispatch")
-    ResponseEntity<Void> dispatch(@PathVariable("productId") UUID productId, @RequestBody DispatchRequest request);
-
-    @Operation(summary = "Reservation request for a product")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "202", description = "Reservation request is accepted",
-                    content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = ReservationRequest.class)) })
-    })
-    @PostMapping("/products/{productId}/reservations")
-    ResponseEntity<Void> reserve(@PathVariable("productId") UUID productId, @RequestBody ReservationRequest request);
-
-    @Operation(summary = "Cancel reservation request")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "202", description = "Cancel Reservation request is accepted",
-                    content = { @Content(mediaType = "application/json")})
-    })
-    @PostMapping("/products/{productId}/reservations/{reservationId}/cancel")
-    ResponseEntity<Void> cancelReservation(@PathVariable("productId") UUID productId, @PathVariable("reservationId") Integer reservationId);
-
-    @Operation(summary = "Complete reservation request")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "202", description = "Cancel Reservation request is accepted",
-                    content = { @Content(mediaType = "application/json")})
-    })
-    @PostMapping("/products/{productId}/reservations/{reservationId}/complete")
-    ResponseEntity<Void> completeReservation(@PathVariable("productId") UUID productId, @PathVariable("reservationId") Integer reservationId);
-
+    ResponseEntity<Void> dispatch(@PathVariable("productId") UUID productId, @RequestBody DispatchRequest request, @RequestHeader HttpHeaders httpHeaders);
 }

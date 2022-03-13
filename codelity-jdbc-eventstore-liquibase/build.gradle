@@ -17,8 +17,8 @@ dependencies {
 liquibase {
     activities {
         main {
-            changeLogFile "codelity-jdbc-eventstore-liquibase/changelog/db.changelog-1.0.xml"
-            url 'jdbc:postgresql://localhost:5432/catalog_eventstore'
+            changeLogFile "changelog/db.changelog-1.0.xml"
+            url 'jdbc:postgresql://localhost:5432/inventory_eventstore'
             username 'postgres'
             password '12345'
         }

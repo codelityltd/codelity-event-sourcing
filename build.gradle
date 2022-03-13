@@ -5,7 +5,7 @@ allprojects {
 
 subprojects {
     apply plugin: 'java-library'
-    if (!it.name.startsWith('inventory')) {
+    if (!it.name.endsWith('liquibase')) {
         apply plugin: 'maven-publish'
     }
 
@@ -26,7 +26,7 @@ subprojects {
         useJUnitPlatform()
     }
 
-    if (!it.name.startsWith('inventory')) {
+    if (!it.name.endsWith('liquibase')) {
         publishing {
             publications {
                 mavenJava(MavenPublication) {
@@ -69,26 +69,4 @@ project(":codelity-jdbc-eventstore-spring-config") {
         testImplementation "org.springframework.boot:spring-boot-starter-test:${springboot_version}"
     }
 }
-
-project(":inventory:inventory-api") {
-    dependencies {
-        implementation "org.springframework.boot:spring-boot-starter-web:${springboot_version}"
-        implementation "org.springdoc:springdoc-openapi-ui:1.6.5"
-        implementation "org.springdoc:springdoc-openapi-data-rest:1.6.5"
-    }
-}
-
-project(":inventory:inventory-service") {
-    dependencies {
-        implementation project(":inventory:inventory-api")
-        implementation "${group}:codelity-event-sourcing-spring-config:${version}"
-        implementation "${group}:codelity-jdbc-eventstore-spring-config:${version}"
-        implementation 'org.postgresql:postgresql:42.3.3'
-        implementation "org.springframework.boot:spring-boot-starter-web:${springboot_version}"
-        implementation "org.springframework.boot:spring-boot-starter-validation:${springboot_version}"
-        testImplementation "org.springframework.boot:spring-boot-starter-test:${springboot_version}"
-
-    }
-}
-
 

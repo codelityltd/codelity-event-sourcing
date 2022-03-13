@@ -2,15 +2,27 @@ package uk.co.codelity.inventory.events;
 
 import uk.co.codelity.event.sourcing.common.annotation.Event;
 
+import java.util.UUID;
+
 @Event(name="inventory-service.stock-increased")
 public class StockIncreased {
+    private UUID productId;
     private int quantity;
 
     public StockIncreased() {
     }
 
-    public StockIncreased(int quantity) {
+    public StockIncreased(UUID productId, int quantity) {
+        this.productId = productId;
         this.quantity = quantity;
+    }
+
+    public UUID getProductId() {
+        return productId;
+    }
+
+    public void setProductId(UUID productId) {
+        this.productId = productId;
     }
 
     public int getQuantity() {
@@ -24,7 +36,8 @@ public class StockIncreased {
     @Override
     public String toString() {
         return "StockIncreased{" +
-                "quantity=" + quantity +
+                "productId=" + productId +
+                ", quantity=" + quantity +
                 '}';
     }
 }
