@@ -79,3 +79,8 @@ Parameters: Worker count, polling interval, polling item count, max retry count,
 ### MVP scope:
 
 Snapshots, Event Replay won't be in the MVP.
+
+
+### To run example InventoryService project:
+
+Navigate to the folder `'inventory'` and run `'./run.sh'` command in the terminal. Example requests are in the file `'request.http'`. 
