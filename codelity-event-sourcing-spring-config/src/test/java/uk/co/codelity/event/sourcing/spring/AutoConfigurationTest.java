@@ -40,7 +40,7 @@ class AutoConfigurationTest {
   
         when(applicationContext.getBeansWithAnnotation(SpringBootApplication.class)).thenReturn(beans);
         AutoConfiguration autoConfiguration = new AutoConfiguration();
-        EventSourcingContext eventSourcingContext = autoConfiguration.eventHandlingContext(applicationContext, bootstrapper);
+        EventSourcingContext eventSourcingContext = autoConfiguration.eventSourcingContext(applicationContext, bootstrapper);
         verify(bootstrapper, times(1)).initContext(appClassCaptor.capture());
         assertThat(appClassCaptor.getValue(), is(App.class.getPackageName()));
     }
