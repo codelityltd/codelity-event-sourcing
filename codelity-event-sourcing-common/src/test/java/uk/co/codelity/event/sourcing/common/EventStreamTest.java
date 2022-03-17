@@ -49,7 +49,7 @@ class EventStreamTest {
                 eventInfo(streamId, 1),
                 eventInfo(streamId, 2));
 
-        List<Envelope<?>> envelopes = List.of(
+        List<Envelope<Object>> envelopes = List.of(
                 envelope(new Event1()),
                 envelope(new Event2())
         );
@@ -71,7 +71,7 @@ class EventStreamTest {
         return new EventInfo(streamId, position, "", "", "");
     }
 
-    private Envelope<?> envelope(Object event) {
+    private Envelope<Object> envelope(Object event) {
         return new Envelope<>(new Metadata(UUID.randomUUID(), "UserId"), event);
     }
 

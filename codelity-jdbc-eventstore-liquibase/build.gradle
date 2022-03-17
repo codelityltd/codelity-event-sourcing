@@ -20,7 +20,7 @@ liquibase {
             changeLogFile "changelog/db.changelog-1.0.xml"
             url 'jdbc:postgresql://localhost:5432/inventory_eventstore'
             username 'postgres'
-            password '12345'
+            password 'postgres'
         }
     }
 }

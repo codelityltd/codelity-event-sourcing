@@ -9,6 +9,8 @@ import uk.co.codelity.event.sourcing.core.utils.ObjectFactory;
 
 import java.util.function.BiConsumer;
 
+import static java.util.Objects.requireNonNull;
+
 public class AggregateService {
     private final EventSourcingContext eventSourcingContext;
     private final ObjectMapper objectMapper;
@@ -24,6 +26,9 @@ public class AggregateService {
 
     @SuppressWarnings("unchecked")
     public <T> T load(EventStream eventStream, Class<T> clazz) throws AggregateLoadException {
+        requireNonNull(eventStream);
+        requireNonNull(clazz);
+
         try {
             T aggregate = objectFactory.create(clazz);
 

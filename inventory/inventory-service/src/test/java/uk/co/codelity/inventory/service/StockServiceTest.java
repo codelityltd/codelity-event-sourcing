@@ -45,7 +45,7 @@ class StockServiceTest {
     void shouldAppendStockIncreasedEvent() throws AggregateLoadException, EventPersistenceException, EventLoadException {
         UUID productId = UUID.randomUUID();
         Metadata metadata = new Metadata(UUID.randomUUID(), "UserId");
-        Stream<Envelope<?>> events = Stream.of(new Envelope<>(metadata, new StockIncreased(productId, 1)));
+        Stream<Envelope<Object>> events = Stream.of(new Envelope<>(metadata, new StockIncreased(productId, 1)));
         when(aggregateService.load(eventStream, ProductStock.class)).thenReturn(productStock);
         when(productStock.supply(productId, 1, metadata)).thenReturn(events);
         when(eventStore.getStreamById(productId.toString())).thenReturn(eventStream);
@@ -59,7 +59,7 @@ class StockServiceTest {
     void shouldAppendStockDecreasedEvent() throws AggregateLoadException, EventPersistenceException, EventLoadException {
         UUID productId = UUID.randomUUID();
         Metadata metadata = new Metadata(UUID.randomUUID(), "UserId");
-        Stream<Envelope<?>> events = Stream.of(new Envelope<>(metadata, new StockDecreased(productId, 1)));
+        Stream<Envelope<Object>> events = Stream.of(new Envelope<>(metadata, new StockDecreased(productId, 1)));
         when(aggregateService.load(eventStream, ProductStock.class)).thenReturn(productStock);
         when(productStock.dispatch(productId, 1, metadata)).thenReturn(events);
         when(eventStore.getStreamById(productId.toString())).thenReturn(eventStream);

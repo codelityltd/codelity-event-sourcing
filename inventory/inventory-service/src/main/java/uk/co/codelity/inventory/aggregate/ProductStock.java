@@ -43,11 +43,11 @@ public class ProductStock {
         stock -= stockDecreased.getQuantity();
     }
 
-    public Stream<Envelope<?>> supply(UUID productId, int quantity, Metadata metadata) {
+    public Stream<Envelope<Object>> supply(UUID productId, int quantity, Metadata metadata) {
         return Stream.of(new Envelope<>(metadata, new StockIncreased(productId, quantity)));
     }
 
-    public Stream<Envelope<?>> dispatch(UUID productId, Integer quantity, Metadata metadata) {
+    public Stream<Envelope<Object>> dispatch(UUID productId, Integer quantity, Metadata metadata) {
         if (stock < quantity) {
             throw new OutOfStockException("Product is out of stock. ProductId: " + productId);
         }
