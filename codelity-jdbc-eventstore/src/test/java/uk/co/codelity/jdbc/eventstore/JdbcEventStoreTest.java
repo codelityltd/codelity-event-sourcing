@@ -22,6 +22,7 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
@@ -36,6 +37,8 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class JdbcEventStoreTest {
+    public static final String EVENT_1 = "event1";
+    public static final String HANDLER_1 = "HANDLER1";
     @Mock
     private EventRepository eventRepository;
 
@@ -54,20 +57,21 @@ class JdbcEventStoreTest {
     @Test
     void shouldAppendEvents() throws EventPersistenceException, SQLException {
         String streamId= UUID.randomUUID().toString();
-        when(eventHandlerRegistry.getHandlersByEventName("event1")).thenReturn(List.of("HANDLER1"));
-        jdbcEventStore.append(streamId, List.of(new Envelope<>(new Metadata(UUID.randomUUID(), "userId"), new Event1())));
+        when(eventHandlerRegistry.getHandlersByEventName(EVENT_1)).thenReturn(List.of(HANDLER_1));
+        jdbcEventStore.append(streamId, Stream.of(new EventInfo(streamId, 0, EVENT_1, "", "")));
         verify(eventRepository, times(1)).saveAll(eq(streamId), eventCaptor.capture());
         assertThat(eventCaptor.getValue().size(), is(1));
-        assertThat(eventCaptor.getValue().get(0).name, is("event1"));
-        assertThat(eventCaptor.getValue().get(0).handlerCodes, is(List.of("HANDLER1")));
+        assertThat(eventCaptor.getValue().get(0).name, is(EVENT_1));
+        assertThat(eventCaptor.getValue().get(0).handlerCodes, is(List.of(HANDLER_1)));
     }
 
     @Test
     void appendEventsShouldThrowEventPeristenceException() throws SQLException {
         String streamId= UUID.randomUUID().toString();
-        when(eventHandlerRegistry.getHandlersByEventName("event1")).thenReturn(List.of("HANDLER1"));
+        when(eventHandlerRegistry.getHandlersByEventName(EVENT_1)).thenReturn(List.of(HANDLER_1));
         doThrow(new SQLException()).when(eventRepository).saveAll(any(), any());
-        assertThrows(EventPersistenceException.class, () -> jdbcEventStore.append(streamId, List.of(new Envelope<>(new Metadata(UUID.randomUUID(), "userId"), new Event1()))));
+        assertThrows(EventPersistenceException.class, () -> jdbcEventStore.append(streamId,
+                Stream.of(new EventInfo(streamId, 0, EVENT_1, "", ""))));
     }
 
     @Test

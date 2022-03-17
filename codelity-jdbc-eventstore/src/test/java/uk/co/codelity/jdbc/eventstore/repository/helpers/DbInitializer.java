@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 
 
 public class DbInitializer {
@@ -25,9 +24,7 @@ public class DbInitializer {
     public void init() throws Exception {
         try(Connection connection = DriverManager.getConnection(url, user, password)) {
             try (final PreparedStatement statement = connection.prepareStatement(loadFile("/schema.sql"))) {
-                boolean result = statement.execute();
-
-                System.out.println("Init:" + result);
+                statement.execute();
             }
         }
 

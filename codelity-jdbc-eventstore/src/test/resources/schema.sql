@@ -1,4 +1,4 @@
-ALTER TABLE IF EXISTS event_delivery DROP CONSTRAINT fk_event_delivery_event_id;
+ALTER TABLE IF EXISTS event_delivery DROP CONSTRAINT IF EXISTS  fk_event_delivery_event_id;
 
 DROP TABLE IF EXISTS event_delivery;
 CREATE TABLE event_delivery (
@@ -23,7 +23,8 @@ CREATE TABLE  IF NOT EXISTS event (
       metadata varchar(250) NOT NULL,
       payload text NOT NULL,
       date_created timestamp NOT NULL,
-      CONSTRAINT pk_event_id PRIMARY KEY (event_id)
+      CONSTRAINT pk_event_id PRIMARY KEY (event_id),
+    CONSTRAINT event_un UNIQUE (position, stream_id)
 );
 
 ALTER TABLE event_delivery ADD CONSTRAINT fk_event_delivery_event_id

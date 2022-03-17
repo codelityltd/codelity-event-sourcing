@@ -10,6 +10,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.co.codelity.event.sourcing.common.EventInfo;
 import uk.co.codelity.event.sourcing.common.EventStore;
+import uk.co.codelity.event.sourcing.common.EventStream;
 import uk.co.codelity.event.sourcing.common.annotation.Event;
 import uk.co.codelity.event.sourcing.core.context.EventSourcingContext;
 import uk.co.codelity.event.sourcing.core.utils.ObjectFactory;
@@ -30,8 +31,6 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AggregateServiceTest {
-    @Mock
-    private EventStore eventStore;
 
     @Mock
     private ObjectMapper objectMapper;
@@ -53,7 +52,7 @@ class AggregateServiceTest {
                 .withAggregateEventHandlers(Map.of("Event-1", aggregateProxy))
                 .build();
 
-        aggregateService = new AggregateService(eventStore, eventSourcingContext, objectFactory, objectMapper);
+        aggregateService = new AggregateService(eventSourcingContext, objectFactory, objectMapper);
     }
 
     @Test
@@ -61,14 +60,17 @@ class AggregateServiceTest {
         String streamId = randomUUID().toString();
         TestEvent event = new TestEvent();
 
-        when(eventStore.loadEvents(streamId))
-                .thenReturn(List.of(
-                        new EventInfo(streamId, 1, "Event-1", "", "")));
+        EventStream eventStream = new EventStream(
+                null,
+                objectMapper,
+                streamId,
+                1,
+                List.of(new EventInfo(streamId, 1, "Event-1", "", "")));
 
         when(objectFactory.create(TestAggregate.class)).thenReturn(aggregate);
         when(objectMapper.readValue(any(String.class), eq(TestEvent.class))).thenReturn(event);
 
-        TestAggregate actual = aggregateService.load(streamId, TestAggregate.class);
+        TestAggregate actual = aggregateService.load(eventStream, TestAggregate.class);
         assertThat(actual, is(aggregate));
         verify(aggregate, times(1)).handleEvent(event);
     }

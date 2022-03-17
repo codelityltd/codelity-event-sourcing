@@ -6,7 +6,8 @@ psql -U postgres -d inventory_eventstore -c 'CREATE TABLE IF NOT EXISTS public."
 	metadata varchar(250) NOT NULL,
 	payload text NOT NULL,
 	date_created timestamp NOT NULL,
-	CONSTRAINT pk_event_id PRIMARY KEY (event_id)
+	CONSTRAINT pk_event_id PRIMARY KEY (event_id),
+	CONSTRAINT event_un UNIQUE ("position", stream_id)
 );
 
 

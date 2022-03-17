@@ -70,7 +70,7 @@ public class EventRepository {
 
     private void saveEvent(Event event, PositionInfo positionInfo, Connection connection) throws SQLException {
 
-        long eventId = insertEventLog(event, ++positionInfo.position, connection);
+        long eventId = insertEventLog(event, connection);
 
         for (String handlerCode : event.handlerCodes) {
             Integer status = DeliveryStatus.PENDING;
@@ -94,11 +94,11 @@ public class EventRepository {
         }
     }
 
-    private long insertEventLog(Event event, Integer position, Connection connection) throws SQLException {
+    private long insertEventLog(Event event, Connection connection) throws SQLException {
         return JdbcInsert.insert(INSERT_EVENTLOG_SQL)
                 .withParams(
                         event.streamId,
-                        position,
+                        event.position,
                         event.name,
                         event.metadata,
                         event.payload,

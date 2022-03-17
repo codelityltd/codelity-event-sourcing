@@ -37,6 +37,12 @@ subprojects {
     }
 }
 
+project(":codelity-event-sourcing-common") {
+    dependencies {
+        implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.4'
+    }
+}
+
 project(":codelity-event-sourcing-core") {
     dependencies {
         api "${group}:codelity-event-sourcing-common:${version}"

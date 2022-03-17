@@ -1,5 +1,5 @@
 eventstore:
   jdbc:
-    url: jdbc:postgresql://localhost/inventory_eventstore
+    url: jdbc:postgresql://postgres/inventory_eventstore
     user: postgres
     password: 12345
