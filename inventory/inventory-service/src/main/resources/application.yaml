@@ -2,4 +2,14 @@ eventstore:
   jdbc:
     url: jdbc:postgresql://postgres/inventory_eventstore
     user: postgres
-    password: 12345
+    password: postgres
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+  datasource:
+    url: jdbc:postgresql://postgres/inventory_view
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver

@@ -1,5 +1,8 @@
 package uk.co.codelity.event.sourcing.common.exceptions;
 
+/**
+ * Thrown when an error occurred while persisting events.
+ */
 public class EventPersistenceException extends Exception {
     public EventPersistenceException() {
     }

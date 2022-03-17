@@ -9,6 +9,9 @@ import uk.co.codelity.event.sourcing.common.utils.TypeUtils;
 import java.util.Iterator;
 import java.util.stream.Stream;
 
+/**
+ * Represents a stream for an aggregate. Used for restoring the aggregate and maintaining position.
+ */
 public class EventStream {
     private final EventStore eventStore;
     private final ObjectMapper objectMapper;

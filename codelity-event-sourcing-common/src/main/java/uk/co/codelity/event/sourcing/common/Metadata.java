@@ -2,6 +2,9 @@ package uk.co.codelity.event.sourcing.common;
 
 import java.util.UUID;
 
+/**
+ *  For storing metadata information of requests and events.
+ */
 public class Metadata {
     private UUID correlationId;
     private String userId;
