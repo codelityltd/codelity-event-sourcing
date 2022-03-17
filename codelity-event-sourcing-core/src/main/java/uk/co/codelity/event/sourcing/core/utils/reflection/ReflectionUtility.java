@@ -44,6 +44,7 @@ public class ReflectionUtility {
         requireNonNull(annotation);
 
         Set<Class<?>> classes = getClasses(packageName);
+
         return classes.stream().filter(c -> nonNull(c.getAnnotation(annotation)))
                 .collect(Collectors.toSet());
     }
@@ -78,7 +79,8 @@ public class ReflectionUtility {
     }
 
     private static Enumeration<URL> getResources(String packageName) throws IOException {
-        return ClassLoader.getSystemClassLoader()
-                .getResources(packageName.replaceAll("[.]", "/"));
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        return classLoader.getResources(packageName.replaceAll("[.]", "/"));
+
     }
 }

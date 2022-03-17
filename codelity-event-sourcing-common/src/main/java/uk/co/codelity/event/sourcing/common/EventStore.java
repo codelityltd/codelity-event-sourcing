@@ -3,7 +3,7 @@ package uk.co.codelity.event.sourcing.common;
 import uk.co.codelity.event.sourcing.common.exceptions.EventLoadException;
 import uk.co.codelity.event.sourcing.common.exceptions.EventPersistenceException;
 
-import java.util.List;
+import java.util.stream.Stream;
 
 public interface EventStore {
 
@@ -13,12 +13,12 @@ public interface EventStore {
      * @param events events to be added to the stream
      * @throws EventPersistenceException
      */
-    void append(String streamId, List<Envelope<?>> events) throws EventPersistenceException;
+    void append(String streamId, Stream<EventInfo> events) throws EventPersistenceException;
 
     /***
-     * Load events from a stream.
+     * Load stream by streamId.
      * @param streamId id of the stream.
      * @throws EventLoadException
      */
-    Iterable<EventInfo> loadEvents(String streamId) throws EventLoadException;
+    EventStream getStreamById(String streamId) throws EventLoadException;
 }

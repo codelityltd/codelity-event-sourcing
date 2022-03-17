@@ -57,11 +57,13 @@ public class DeliveryWorker {
             return;
         }
 
-        logger.info("Delivery List count: {}", deliveryList.size());
+        if (!deliveryList.isEmpty()) {
+            logger.info("Delivery List count: {}", deliveryList.size());
 
-        for (EventDelivery eventDelivery : deliveryList) {
-            DeliveryWork deliveryWork = deliveryWorkFactory.create(eventDelivery, eventHandlerExecutorService, eventDeliveryRepository);
-            executorService.submit(deliveryWork);
+            for (EventDelivery eventDelivery : deliveryList) {
+                DeliveryWork deliveryWork = deliveryWorkFactory.create(eventDelivery, eventHandlerExecutorService, eventDeliveryRepository);
+                executorService.submit(deliveryWork);
+            }
         }
     }
 }

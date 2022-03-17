@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import uk.co.codelity.event.sourcing.common.EventHandlerExecutorService;
-import uk.co.codelity.event.sourcing.common.EventStore;
 import uk.co.codelity.event.sourcing.core.bootstrap.Bootstrapper;
 import uk.co.codelity.event.sourcing.core.context.EventSourcingContext;
 import uk.co.codelity.event.sourcing.core.exceptions.BootstrapException;
@@ -36,16 +35,16 @@ public class AutoConfiguration {
 
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-    public EventSourcingContext eventHandlingContext(ApplicationContext applicationContext, Bootstrapper bootstrapper) throws BootstrapException {
+    public EventSourcingContext eventSourcingContext(ApplicationContext applicationContext, Bootstrapper bootstrapper) throws BootstrapException {
         return bootstrapper.initContext(findApplicationPackageName(applicationContext));
     }
 
     @Bean
-    public AggregateService aggregateService(EventStore eventStore,
-                                             EventSourcingContext eventSourcingContext,
+    public AggregateService aggregateService(EventSourcingContext eventSourcingContext,
                                              ObjectFactory objectFactory,
                                              ObjectMapper objectMapper){
-        return new AggregateService(eventStore, eventSourcingContext, objectFactory, objectMapper);
+
+        return new AggregateService(eventSourcingContext, objectFactory, objectMapper);
     }
 
     @Bean

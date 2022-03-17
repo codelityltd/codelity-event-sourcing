@@ -20,6 +20,7 @@ import java.util.stream.IntStream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class EventRepositoryTest {
     private EventRepository eventRepository;
@@ -44,7 +45,7 @@ class EventRepositoryTest {
     @Test
     void shouldPersistsAndReadsEvents() throws Exception {
         final String streamId = UUID.randomUUID().toString();
-        whenEventsAreSaved(streamId, givenEventsWithStreamId(streamId, 2));
+        whenEventsAreSaved(streamId, givenEventsWithStreamId(streamId, 1, 2));
 
         final List<Event> events = eventRepository.findEventsByStreamIdOrderedByPosition(streamId);
         assertThat(events.size(), is(2));
@@ -76,8 +77,8 @@ class EventRepositoryTest {
     @Test
     void statusShouldBePendingWhenPreviousDeliveryIsNotCompleted() throws Exception {
         final String streamId = UUID.randomUUID().toString();
-        whenEventsAreSaved(streamId, givenEventsWithStreamId(streamId, 1));
-        whenEventsAreSaved(streamId, givenEventsWithStreamId(streamId, 1));
+        whenEventsAreSaved(streamId, givenEventsWithStreamId(streamId, 1, 1));
+        whenEventsAreSaved(streamId, givenEventsWithStreamId(streamId, 2, 2));
         final List<Event> events = eventRepository.findEventsByStreamIdOrderedByPosition(streamId);
         assertThat(events.size(), is(2));
         assertThat(events.get(0).position, is(1));
@@ -92,12 +93,19 @@ class EventRepositoryTest {
     }
 
     @Test
+    void statusNotAllowToPersistSameStreamIdAndPosition() throws Exception {
+        final String streamId = UUID.randomUUID().toString();
+        whenEventsAreSaved(streamId, givenEventsWithStreamId(streamId, 1, 1));
+        assertThrows(SQLException.class, () -> whenEventsAreSaved(streamId, givenEventsWithStreamId(streamId, 1, 1)));
+    }
+
+    @Test
     void statusShouldBeReadyWhenPreviousDeliveryIsCompleted() throws Exception {
         final String streamId = UUID.randomUUID().toString();
-        whenEventsAreSaved(streamId, givenEventsWithStreamId(streamId, 1));
+        whenEventsAreSaved(streamId, givenEventsWithStreamId(streamId, 1, 1));
         JdbcTestHelper.setAllEventsAsDelivered(streamId);
 
-        whenEventsAreSaved(streamId, givenEventsWithStreamId(streamId, 1));
+        whenEventsAreSaved(streamId, givenEventsWithStreamId(streamId, 2, 2));
         final List<Event> events = eventRepository.findEventsByStreamIdOrderedByPosition(streamId);
         assertThat(events.size(), is(2));
         assertThat(events.get(0).position, is(1));
@@ -115,8 +123,8 @@ class EventRepositoryTest {
         eventRepository.saveAll(streamId, eventsToBeSaved);
     }
 
-    private List<Event> givenEventsWithStreamId(final String streamId, final int count) {
-        return IntStream.range(0, count)
+    private List<Event> givenEventsWithStreamId(String streamId, int minPos, int maxPos) {
+        return IntStream.range(minPos, maxPos + 1)
                 .mapToObj(i -> createEventAndDelivery(streamId, i))
                 .collect(Collectors.toList());
     }
@@ -125,7 +133,7 @@ class EventRepositoryTest {
         return new Event(
                 null,
                 streamId,
-                null,
+                position,
                 "Event-" + position,
                 "",
                 "<payload>",
@@ -137,7 +145,7 @@ class EventRepositoryTest {
         return new Event(
                 null,
                 streamId,
-                null,
+                position,
                 "Event-" + position,
                 "",
                 "<payload>",
