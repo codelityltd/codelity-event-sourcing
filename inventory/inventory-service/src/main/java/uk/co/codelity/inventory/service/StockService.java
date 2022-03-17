@@ -34,7 +34,7 @@ public class StockService {
         logger.info("** Supply productId: {} quantity: {}", productId, quantity);
         EventStream eventStream = eventStore.getStreamById(productId.toString());
         ProductStock productStock = aggregateService.load(eventStream, ProductStock.class);
-        Stream<Envelope<?>> events = productStock.supply(productId, quantity, metadata);
+        Stream<Envelope<Object>> events = productStock.supply(productId, quantity, metadata);
         eventStream.append(events);
     }
 
@@ -42,7 +42,7 @@ public class StockService {
         logger.info("** Dispatch productId: {} quantity: {}", productId, quantity);
         EventStream eventStream = eventStore.getStreamById(productId.toString());
         ProductStock productStock = aggregateService.load(eventStream, ProductStock.class);
-        Stream<Envelope<?>> events = productStock.dispatch(productId, quantity, metadata);
+        Stream<Envelope<Object>> events = productStock.dispatch(productId, quantity, metadata);
         eventStream.append(events);
     }
 }

@@ -40,14 +40,14 @@ public class EventStream {
         return events;
     }
 
-    public void append(Stream<Envelope<?>> envelopes) throws EventPersistenceException {
+    public void append(Stream<Envelope<Object>> envelopes) throws EventPersistenceException {
         int eventPosition = position;
 
         Stream.Builder<EventInfo> eventInfoStreamBuilder = Stream.builder();
-        Iterator<Envelope<?>> envelopeIterator = envelopes.iterator();
+        Iterator<Envelope<Object>> envelopeIterator = envelopes.iterator();
 
         while (envelopeIterator.hasNext()) {
-            Envelope<?> envelope = envelopeIterator.next();
+            Envelope<Object> envelope = envelopeIterator.next();
             try {
                 String eventName = TypeUtils.eventNameOf(envelope.payload);
                 String payload = objectMapper.writeValueAsString(envelope.payload);
