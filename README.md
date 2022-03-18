@@ -69,7 +69,7 @@ public class OrderEventListener {
     
 }
 ```
-if you want to handle event along with metadata information you can use Envelope as the argument.
+To handle event along with metadata information you can use Envelope as the argument.
 ``` java
 
 public class OrderEventListener {
