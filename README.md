@@ -50,8 +50,8 @@ public class Order {
     public void handleOrderCreated(OrderCreatedEvent event) {
     }
     
-    public List<Object> createOrder(Order order) {
-        return Collections.singletonList(new OrderCreatedEvent(product));
+    public List<Envelope<Object>> createOrder(Order order) {
+        return Collections.singletonList(new Envelope(new Metadata(), new OrderCreatedEvent(product)));
     }
     
 }
@@ -64,6 +64,18 @@ public class OrderEventListener {
 
     @EventHandler
     public void handleOrderCreated(OrderCreatedEvent event) {
+        repository.save(event.getOrder());
+    }
+    
+}
+```
+if you want to handle event along with metadata information you can use Envelope as the argument.
+``` java
+
+public class OrderEventListener {
+
+    @EventHandler
+    public void handleOrderCreated(Envelope<OrderCreatedEvent> event) {
         repository.save(event.getOrder());
     }
     
